@@ -1,0 +1,150 @@
+system:
+  name: ReGood
+  whitelist:
+    - /system/login
+    - /system/register
+    - /system/oss/download/**
+    - /system/white/routes
+    - /system/captcha
+    - /system/sendRegisterEmail
+
+server:
+  port: ${server.port}
+spring:
+  profiles:
+    active: dev
+  application:
+    name: regood
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  datasource:
+    url: jdbc:mysql://${regood.mysql.ip}:${regood.mysql.port}/${regood.mysql.db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${regood.mysql.username}
+    password: ${regood.mysql.password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      initialSize: 5
+      minIdle: 5
+      maxActive: 20
+      maxWait: 600000
+      # 主要配置以上几个即可
+      timeBetweenEvictionRunsMillis: 600000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      #配置监控统计拦截的filters：stat:监控统计、self4j(使用log4j的记得导入log4j的依赖）：日志记录、wall：防御sql注入 此处配置不能遗漏服务sql监控台不能监控sql
+      filter:
+        slf4j:
+          enabled: true
+        stat:
+          enabled: true
+          merge-sql: true
+          slow-sql-millis: 5000
+        wall:
+          enabled: true
+      #配置stat-view-servlet
+      stat-view-servlet:
+        enabled: true
+        login-username: admin
+        login-password: admin
+        reset-enable: false
+      #配置web-stat-filter
+      web-stat-filter:
+        enabled: true
+  redis:
+    # Redis服务器地址
+    host: ${regood.redis.host}
+    # Redis服务器端口号
+    port: ${regood.redis.port}
+    # 使用的数据库索引，默认是0
+    database: ${regood.redis.index}
+    # 连接超时时间
+    timeout: 1800000
+    # 设置密码
+    #password: ${regood.redis.password}
+  mvc:
+    pathmatch:
+      # 解决swagger报错
+      matching-strategy: ANT_PATH_MATCHER
+  mail:
+    default-encoding: UTF-8
+    host: ${regood.mail.host}
+    port: ${regood.mail.port}
+    username: ${regood.mail.username}
+    password: ${regood.mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: ${regood.mail.host}
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  rabbitmq:
+    host: ${regood.rabbitmq.host}
+    port: ${regood.rabbitmq.port}
+    username: ${regood.rabbitmq.username}
+    password: ${regood.rabbitmq.password}
+    listener:
+      simple:
+        concurrency: ${regood.rabbitmq.concurrency} # 消费者数量
+        max-concurrency: ${regood.rabbitmq.maxConcurrency} # 最大消费者数量
+        prefetch: ${regood.rabbitmq.prefetch} # 消费者每次从队列获取的消息数量。写多了，如果长时间得不到消费，数据就一直得不到处理
+        acknowledge-mode: ${regood.rabbitmq.ackMode} # 消费接收确认机制-手动确认
+        retry:
+          enabled: ${regood.rabbitmq.retry.enable}
+          initial-interval: ${regood.rabbitmq.retry.time} # 初始失败的时长等待
+          multiplier: ${regood.rabbitmq.retry.multiplier} # 失败后下次等待时常的倍数
+          max-attempts: ${regood.rabbitmq.retry.maxAttempts} # 最大重连次数
+          stateless: ${regood.rabbitmq.retry.stateless} # true无状态，false有状态。如果业务包含事务，改为false
+
+mybatis-plus:
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
+  typeAliasesPackage: com.abc.**.domain.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+
+wechat:
+  appid: wxed9954c01bb89b47
+  appSecret: a7482517235173ddb4083788de60b90e
+  redirectUri: http://localhost:8160/auth/wxLogin
+
+oss:
+  type: ${regood.oss.type}
+  minio:
+    endpoint: ${regood.oss.minio.endpoint}
+    bucketName: ${regood.oss.minio.bucketName}
+    accessKey: ${regood.oss.minio.accessKey}
+    secretKey: ${regood.oss.minio.secretKey}
+  aliyun:
+    end-point: ${regood.oss.aliyun.endpoint}
+    access-key-id: ${regood.oss.aliyun.accessKey}
+    access-key-secret: ${regood.oss.aliyun.secretKey}
+    bucket-name: ${regood.oss.aliyun.bucketName}
+  local:
+    path: ${regood.oss.local.path}
+
+url:
+  front: ${regood.url.front}
+  backend: ${regood.url.backend}
+
+# token配置
+token:
+  # 令牌自定义标识
+  header: Authorization
+  # 令牌密钥
+  secret: abcdefghijklmnopqrstuvwxyz
+  # 令牌有效期（默认60分钟）
+  expireTime: 60
+  # 令牌刷新时间（默认10分钟）
+  refreshTime: 10
