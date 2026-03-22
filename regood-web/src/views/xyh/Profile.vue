@@ -294,16 +294,6 @@
                 <el-button type="primary" size="small" @click="showPasswordModal = true">修改</el-button>
               </div>
               <div class="setting-item">
-                <div class="setting-title">账号安全</div>
-                <div class="setting-desc">查看账号安全等级</div>
-                <el-button type="info" size="small" @click="viewSecurity">查看</el-button>
-              </div>
-              <div class="setting-item">
-                <div class="setting-title">通知设置</div>
-                <div class="setting-desc">管理您的消息通知</div>
-                <el-switch v-model="notificationEnabled" active-color="#1890ff" inactive-color="#ccc" />
-              </div>
-              <div class="setting-item">
                 <div class="setting-title">退出登录</div>
                 <div class="setting-desc">退出当前账号</div>
                 <el-button type="danger" size="small" @click="handleLogout">退出</el-button>
@@ -344,6 +334,25 @@
 <script>
 import XyhHeader from '@/components/XyhHeader'
 import XyhFooter from '@/components/XyhFooter'
+import { mapGetters } from 'vuex'
+import { getMyProducts, deleteProduct, offlineProduct } from '@/api/business/product'
+import { getFavoriteList, removeFavorite } from '@/api/business/favorite'
+import { getMySoldList, getMyBoughtList } from '@/api/business/order'
+import { getInfo, updateUser } from '@/api/system/user'
+
+const STATUS_MAP = {
+  1: { text: '在售', class: 'onsale' },
+  2: { text: '已售', class: 'sold' },
+  3: { text: '下架', class: 'offline' }
+}
+
+const ORDER_STATUS_MAP = {
+  0: { text: '待支付', type: 'warning' },
+  1: { text: '已支付', type: 'primary' },
+  2: { text: '已发货', type: 'primary' },
+  3: { text: '已完成', type: 'success' },
+  4: { text: '已取消', type: 'info' }
+}
 
 export default {
   name: 'XyhProfile',
@@ -356,23 +365,22 @@ export default {
       activeMenu: 'profile',
       showPasswordModal: false,
       notificationEnabled: true,
-      userAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-      userName: '学长小李',
-      userVerified: true,
-      studentVerified: true,
+      userVerified: false,
+      studentVerified: false,
       userStats: {
-        sellCount: 8,
-        soldCount: 24,
-        boughtCount: 5
+        sellCount: 0,
+        soldCount: 0,
+        boughtCount: 0
       },
       profileForm: {
-        username: 'xuelao666',
-        nickname: '学长小李',
-        email: 'xuelao@example.com',
-        phone: '138****1234',
-        signature: '爱生活，爱交易！',
-        creditScore: 850,
-        registerTime: '2023-09-01'
+        userId: null,
+        username: '',
+        nickname: '',
+        email: '',
+        phone: '',
+        signature: '',
+        creditScore: 100,
+        registerTime: ''
       },
       passwordForm: {
         oldPassword: '',
@@ -392,70 +400,26 @@ export default {
           { validator: this.validatePassword, trigger: 'blur' }
         ]
       },
-      myPublishCount: 8,
-      mySoldCount: 24,
-      myBoughtCount: 5,
-      myFavoriteCount: 12,
-      publishList: [
-        {
-          id: 1,
-          title: 'iPhone 13 Pro 256G 远峰蓝 95 新',
-          image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200',
-          price: 5299,
-          status: 'onsale',
-          statusText: '在售'
-        },
-        {
-          id: 2,
-          title: '捷安特山地自行车 9 成新',
-          image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=200',
-          price: 1299,
-          status: 'sold',
-          statusText: '已售出'
-        }
-      ],
-      soldList: [
-        {
-          id: 1,
-          title: '高等数学（第七版）上下册',
-          image: 'https://images.unsplash.com/photo-1496930012345-2e5b5274141c?w=200',
-          price: 88,
-          quantity: 2,
-          statusType: 'success',
-          statusText: '交易成功',
-          buyer: '学弟小王',
-          time: '2024-03-15'
-        }
-      ],
-      boughtList: [
-        {
-          id: 1,
-          title: 'iPad Pro 2021 11 寸',
-          image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=200',
-          price: 3500,
-          quantity: 1,
-          statusType: 'warning',
-          statusText: '交易中',
-          seller: '学长小张',
-          time: '2024-03-10'
-        }
-      ],
-      favoriteList: [
-        {
-          id: 1,
-          title: 'Sony WH-1000XM4 降噪耳机',
-          image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200',
-          price: 1999,
-          condition: '95 新'
-        },
-        {
-          id: 2,
-          title: 'Nike Air Force 1 白鞋',
-          image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200',
-          price: 599,
-          condition: '全新'
-        }
-      ]
+      myPublishCount: 0,
+      mySoldCount: 0,
+      myBoughtCount: 0,
+      myFavoriteCount: 0,
+      publishList: [],
+      soldList: [],
+      boughtList: [],
+      favoriteList: []
+    }
+  },
+  computed: {
+    ...mapGetters([
+      'name',
+      'avatar'
+    ]),
+    userName() {
+      return this.profileForm.nickname || this.name || '用户'
+    },
+    userAvatar() {
+      return this.profileForm.avatar || this.avatar || 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
     }
   },
   created() {
@@ -463,8 +427,125 @@ export default {
     if (menu) {
       this.activeMenu = menu
     }
+    this.loadUserInfo()
+    this.loadAllData()
   },
   methods: {
+    async loadUserInfo() {
+      try {
+        const res = await getInfo()
+        if (res.code === 200 && res.data) {
+          const data = res.data
+          this.profileForm = {
+            userId: data.userId,
+            username: data.userName,
+            nickname: data.nickName || data.userName,
+            email: data.email || '',
+            phone: data.phone || '',
+            signature: data.signature || '',
+            creditScore: data.creditScore || 100,
+            registerTime: data.createTime || '',
+            avatar: data.avatar
+          }
+        }
+      } catch (error) {
+        console.error('获取用户信息失败', error)
+      }
+    },
+    async loadAllData() {
+      await Promise.all([
+        this.loadMyPublish(),
+        this.loadMySold(),
+        this.loadMyBought(),
+        this.loadMyFavorite()
+      ])
+    },
+    async loadMyPublish() {
+      try {
+        const res = await getMyProducts({ pageNum: 1, pageSize: 100 })
+        if (res.code === 200) {
+          const list = res.data.list || []
+          this.publishList = list.map(item => ({
+            id: item.productId,
+            title: item.title,
+            image: (item.images && item.images.length > 0) ? item.images[0] : '',
+            price: item.price,
+            status: STATUS_MAP[item.status]?.class || 'onsale',
+            statusText: STATUS_MAP[item.status]?.text || '在售'
+          }))
+          this.myPublishCount = list.filter(item => item.status === 1).length
+          this.userStats.sellCount = this.myPublishCount
+        }
+      } catch (error) {
+        console.error('加载发布列表失败', error)
+      }
+    },
+    async loadMySold() {
+      try {
+        const res = await getMySoldList()
+        if (res.code === 200) {
+          const list = res.data || []
+          this.soldList = list.map(item => ({
+            id: item.orderId,
+            title: item.productTitle,
+            image: item.productImage,
+            price: item.totalAmount,
+            quantity: item.quantity || 1,
+            statusType: ORDER_STATUS_MAP[item.status]?.type || 'info',
+            statusText: ORDER_STATUS_MAP[item.status]?.text || '未知',
+            buyer: item.buyerName || '买家',
+            time: item.createTime
+          }))
+          this.mySoldCount = list.filter(item => item.status === 3).length
+          this.userStats.soldCount = this.mySoldCount
+        }
+      } catch (error) {
+        console.error('加载卖出列表失败', error)
+      }
+    },
+    async loadMyBought() {
+      try {
+        const res = await getMyBoughtList()
+        if (res.code === 200) {
+          const list = res.data || []
+          this.boughtList = list.map(item => ({
+            id: item.orderId,
+            title: item.productTitle,
+            image: item.productImage,
+            price: item.totalAmount,
+            quantity: item.quantity || 1,
+            statusType: ORDER_STATUS_MAP[item.status]?.type || 'info',
+            statusText: ORDER_STATUS_MAP[item.status]?.text || '未知',
+            seller: item.sellerName || '卖家',
+            time: item.createTime,
+            canComment: item.status === 3,
+            canReview: item.status === 3
+          }))
+          this.myBoughtCount = list.length
+          this.userStats.boughtCount = this.myBoughtCount
+        }
+      } catch (error) {
+        console.error('加载买入列表失败', error)
+      }
+    },
+    async loadMyFavorite() {
+      try {
+        const res = await getFavoriteList()
+        if (res.code === 200) {
+          const list = res.data || []
+          this.favoriteList = list.map(item => ({
+            id: item.productId,
+            title: item.title,
+            image: (item.images && item.images.length > 0) ? item.images[0] : '',
+            price: item.price,
+            condition: item.condition || ''
+          }))
+          this.myFavoriteCount = list.length
+        }
+      } catch (error) {
+        console.error('加载收藏列表失败', error)
+      }
+    },
     handleMenuSelect(index) {
       this.activeMenu = index
     },
@@ -473,46 +554,82 @@ export default {
       if (score >= 80) return '#e6a23c'
       return '#f56c6c'
     },
-    handleSaveProfile() {
-      this.$message.success('保存成功')
+    async handleSaveProfile() {
+      try {
+        await updateUser({
+          userId: this.profileForm.userId,
+          nickName: this.profileForm.nickname,
+          email: this.profileForm.email,
+          phone: this.profileForm.phone
+        })
+        this.$message.success('保存成功')
+        this.loadUserInfo()
+      } catch (error) {
+        console.error('保存失败', error)
+        this.$message.error('保存失败')
+      }
     },
     editGoods(id) {
-      this.$message.info(`编辑商品 ${id}`)
+      this.$router.push({ path: '/publish', query: { id } })
     },
-    deleteGoods(id) {
-      this.$confirm('确定要删除此商品吗？', '提示', {
-        type: 'warning'
-      }).then(() => {
+    async deleteGoods(id) {
+      try {
+        await this.$confirm('确定要删除此商品吗？', '提示', { type: 'warning' })
+        await deleteProduct(id)
         this.$message.success('删除成功')
-      })
+        this.loadMyPublish()
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('删除失败', error)
+        }
+      }
+    },
+    async offlineGoods(id) {
+      try {
+        await this.$confirm('确定要下架此商品吗？', '提示', { type: 'warning' })
+        await offlineProduct(id)
+        this.$message.success('下架成功')
+        this.loadMyPublish()
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('下架失败', error)
+        }
+      }
     },
     commentOrder(id) {
-      this.$message.info(`评价订单 ${id}`)
+      this.$message.info('评价功能开发中')
     },
     reviewSeller(id) {
-      this.$message.info(`评价卖家 ${id}`)
+      this.$message.info('评价卖家功能开发中')
     },
     buyNow(id) {
-      this.$message.info(`立即购买 ${id}`)
+      this.$router.push(`/goods/${id}`)
     },
-    collect(id) {
-      this.$message.success('已取消收藏')
+    async collect(id) {
+      try {
+        await removeFavorite(id)
+        this.$message.success('已取消收藏')
+        this.loadMyFavorite()
+      } catch (error) {
+        console.error('取消收藏失败', error)
+      }
     },
     viewSecurity() {
-      this.$message.info('查看账号安全')
+      this.$message.info('账号安全功能开发中')
     },
     handleLogout() {
       this.$confirm('确定要退出登录吗？', '提示', {
         type: 'warning'
       }).then(() => {
-        this.$message.success('退出成功')
-        this.$router.push('/login')
-      })
+        this.$store.dispatch('user/logout').then(() => {
+          this.$router.push('/login')
+        })
+      }).catch(() => {})
     },
     handleUpdatePassword() {
       this.$refs.passwordForm.validate(valid => {
         if (valid) {
-          this.$message.success('密码修改成功')
+          this.$message.info('修改密码功能开发中')
           this.showPasswordModal = false
         }
       })
@@ -531,7 +648,7 @@ export default {
 <style lang="scss" scoped>
 .xyh-profile {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #f5f5f5;
 }
 
 .profile-container {
@@ -551,8 +668,8 @@ export default {
 }
 
 .user-info-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
+  background: linear-gradient(135deg, #ff8c42 0%, #ffa94d 100%);
+  border-radius: 12px;
   padding: 24px;
   color: #fff;
   margin-bottom: 20px;
@@ -586,7 +703,7 @@ export default {
   .user-stats {
     display: flex;
     justify-content: space-around;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     padding: 16px;
     
@@ -609,24 +726,36 @@ export default {
 .menu-list {
   border-right: none;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   
   .el-menu-item {
     height: 50px;
     line-height: 50px;
     font-size: 14px;
+    border-radius: 8px;
+    margin: 4px 8px;
     
     i {
       margin-right: 8px;
+      color: #666;
     }
     
     .badge {
       margin-left: auto;
     }
     
+    &:hover {
+      background: #fff8f5;
+    }
+    
     &.is-active {
-      background: #e6f7ff;
-      color: #1890ff;
+      background: linear-gradient(135deg, #ff8c42 0%, #ffa94d 100%);
+      color: #fff;
+      
+      i {
+        color: #fff;
+      }
     }
   }
 }
@@ -638,8 +767,8 @@ export default {
 
 .profile-content {
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   padding: 24px;
   
   .section-title {
@@ -648,7 +777,7 @@ export default {
     color: #333;
     margin-bottom: 24px;
     padding-bottom: 12px;
-    border-bottom: 2px solid #1890ff;
+    border-bottom: 2px solid #ff8c42;
   }
 }
 
@@ -662,7 +791,7 @@ export default {
       .score-value {
         font-size: 32px;
         font-weight: 700;
-        color: #1890ff;
+        color: #ff8c42;
       }
     }
   }
@@ -671,18 +800,19 @@ export default {
 .goods-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  gap: 16px;
   
   .goods-item {
     display: flex;
     gap: 16px;
     padding: 16px;
-    background: #f5f7fa;
-    border-radius: 8px;
+    background: #fafafa;
+    border-radius: 12px;
     transition: all 0.3s;
     
     &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 16px rgba(255, 107, 0, 0.1);
+      transform: translateY(-2px);
     }
     
     .goods-image {
@@ -716,9 +846,30 @@ export default {
         margin-bottom: 8px;
         
         .price {
-          color: #f5222d;
+          color: #ff4d4f;
           font-size: 18px;
           font-weight: 600;
+        }
+        
+        .status {
+          font-size: 12px;
+          padding: 2px 8px;
+          border-radius: 4px;
+          
+          &.onsale {
+            background: #fff8f5;
+            color: #ff8c42;
+          }
+          
+          &.sold {
+            background: #f6ffed;
+            color: #52c41a;
+          }
+          
+          &.offline {
+            background: #f5f5f5;
+            color: #999;
+          }
         }
         
         .condition {
@@ -730,6 +881,15 @@ export default {
       .goods-actions {
         display: flex;
         gap: 8px;
+        
+        .el-button--primary {
+          background: linear-gradient(135deg, #ff8c42 0%, #ffa94d 100%);
+          border: none;
+          
+          &:hover {
+            opacity: 0.9;
+          }
+        }
       }
     }
   }
@@ -737,15 +897,15 @@ export default {
 
 .order-list {
   .order-item {
-    background: #f5f7fa;
-    border-radius: 8px;
-    padding: 20px;
+    background: #fafafa;
+    border-radius: 12px;
     margin-bottom: 16px;
+    overflow: hidden;
     
     .order-header {
       display: flex;
       gap: 16px;
-      margin-bottom: 16px;
+      padding: 16px;
       
       .order-image {
         width: 100px;
@@ -772,7 +932,7 @@ export default {
           gap: 12px;
           
           .price {
-            color: #f5222d;
+            color: #ff4d4f;
             font-size: 18px;
             font-weight: 600;
           }
@@ -786,8 +946,8 @@ export default {
     
     .order-body {
       background: #fff;
-      border-radius: 8px;
       padding: 16px;
+      border-top: 1px solid #f0f0f0;
       
       .order-status {
         display: flex;
@@ -808,10 +968,9 @@ export default {
         .meta-item {
           display: flex;
           align-items: center;
-          gap: 8px;
           
           .meta-label {
-            color: #666;
+            color: #999;
           }
           
           .meta-value {
@@ -823,6 +982,11 @@ export default {
       .order-actions {
         display: flex;
         gap: 8px;
+        
+        .el-button--primary {
+          background: linear-gradient(135deg, #ff8c42 0%, #ffa94d 100%);
+          border: none;
+        }
       }
     }
   }
@@ -833,8 +997,8 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 0;
-    border-bottom: 1px solid #e8e8e8;
+    padding: 20px 0;
+    border-bottom: 1px solid #f0f0f0;
     
     &:last-child {
       border-bottom: none;
@@ -848,6 +1012,16 @@ export default {
     .setting-desc {
       font-size: 14px;
       color: #999;
+    }
+    
+    .el-button--primary {
+      background: linear-gradient(135deg, #ff8c42 0%, #ffa94d 100%);
+      border: none;
+    }
+    
+    .el-button--danger {
+      background: #ff4d4f;
+      border: none;
     }
   }
 }

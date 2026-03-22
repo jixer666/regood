@@ -1,268 +1,234 @@
 <template>
-  <div class="xyh-cart">
+  <div class="cart-page">
     <xyh-header />
-    
-    <div class="cart-container">
-      <!-- 购物车列表 -->
+
+    <div class="cart-content">
+      <div class="page-header">
+        <h1 class="page-title">购物车</h1>
+        <span class="edit-btn" @click="toggleEdit">{{ isEditing ? '完成' : '管理' }}</span>
+      </div>
+
       <div class="cart-list" v-if="cartItems.length > 0">
-        <div class="cart-header">
-          <h2 class="cart-title">购物车</h2>
-          <span class="item-count">{{ cartItems.length }} 件商品</span>
-        </div>
+        <div
+          v-for="item in cartItems"
+          :key="item.id"
+          class="cart-item"
+        >
+          <div class="item-checkbox">
+            <div
+              :class="['checkbox', { checked: item.selected }]"
+              @click="toggleSelect(item)"
+            >
+              <i class="el-icon-check" v-if="item.selected"></i>
+            </div>
+          </div>
 
-        <div class="cart-items">
-          <div
-            v-for="item in cartItems"
-            :key="item.id"
-            class="cart-item"
-          >
-            <el-checkbox
-              v-model="item.selected"
-              class="select-checkbox"
-            ></el-checkbox>
-
-            <el-image
-              :src="item.image"
-              class="item-image"
-              fit="cover"
-            />
-
-            <div class="item-info">
-              <div class="item-title">{{ item.title }}</div>
-              <div class="item-meta">
-                <span class="seller">卖家：{{ item.seller }}</span>
-                <span class="condition">{{ item.condition }}</span>
+          <div class="item-image" @click="goToDetail(item.id)">
+            <el-image :src="item.image" fit="cover">
+              <div slot="error" class="image-error">
+                <i class="el-icon-picture-outline"></i>
               </div>
+            </el-image>
+            <div class="sold-tag" v-if="item.status === 'sold'">已售</div>
+          </div>
+
+          <div class="item-info" @click="goToDetail(item.id)">
+            <div class="item-title">{{ item.title }}</div>
+            <div class="item-desc">{{ item.description }}</div>
+            <div class="item-tags">
+              <span class="tag condition">{{ item.condition }}</span>
+              <span class="tag" v-if="item.freeShipping">包邮</span>
+            </div>
+            <div class="item-bottom">
               <div class="item-price">
                 <span class="price-symbol">¥</span>
                 <span class="price-value">{{ item.price }}</span>
               </div>
-            </div>
-
-            <div class="item-actions">
-              <el-button
-                type="text"
-                icon="el-icon-delete"
-                @click="removeItem(item.id)"
-              ></el-button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 底部悬浮栏 -->
-        <div class="cart-footer">
-          <div class="footer-left">
-            <el-checkbox
-              v-model="selectAll"
-              @change="toggleSelectAll"
-            >
-              全选
-            </el-checkbox>
-          </div>
-
-          <div class="footer-center">
-            <div class="total-info">
-              <span class="label">合计：</span>
-              <span class="total-price">
-                <span class="price-symbol">¥</span>
-                <span class="price-value">{{ totalPrice }}</span>
-              </span>
-            </div>
-            <div class="discount-info" v-if="discount > 0">
-              <span class="discount-label">已优惠：</span>
-              <span class="discount-value">-¥{{ discount }}</span>
+              <div class="seller-info">
+                <el-avatar :src="item.sellerAvatar" :size="16"></el-avatar>
+                <span class="seller-name">{{ item.sellerName }}</span>
+              </div>
             </div>
           </div>
 
-          <div class="footer-right">
-            <el-button
-              type="primary"
-              size="large"
-              class="checkout-btn"
-              @click="goToCheckout"
-            >
-              去结算
-              <span class="count-badge">{{ selectedCount }}</span>
-            </el-button>
+          <div class="item-delete" v-if="isEditing" @click="removeItem(item.id)">
+            <i class="el-icon-delete"></i>
           </div>
         </div>
       </div>
 
-      <!-- 空购物车 -->
       <div class="empty-cart" v-else>
-        <div class="empty-icon">🛒</div>
-        <div class="empty-title">购物车是空的</div>
-        <div class="empty-desc">快去挑选心仪的商品吧！</div>
-        <el-button
-          type="primary"
-          size="large"
-          class="go-shopping-btn"
-          @click="goToHome"
-        >
-          去购物
-        </el-button>
+        <div class="empty-icon">
+          <i class="el-icon-shopping-cart-2"></i>
+        </div>
+        <div class="empty-text">购物车空空如也</div>
+        <div class="empty-desc">快去挑选心仪的好物吧</div>
+        <div class="empty-btn" @click="goToHome">去逛逛</div>
+      </div>
+
+      <div class="recommend-section" v-if="recommendList.length">
+        <div class="section-header">
+          <span class="section-title">猜你喜欢</span>
+        </div>
+        <div class="recommend-list">
+          <div
+            v-for="item in recommendList"
+            :key="item.id"
+            class="recommend-item"
+            @click="goToDetail(item.id)"
+          >
+            <el-image :src="item.image" class="recommend-image" fit="cover">
+              <div slot="error" class="image-error-small">
+                <i class="el-icon-picture-outline"></i>
+              </div>
+            </el-image>
+            <div class="recommend-info">
+              <div class="recommend-title">{{ item.title }}</div>
+              <div class="recommend-price">¥{{ item.price }}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 结算页面 -->
-    <div class="checkout-section" v-if="showCheckout">
-      <div class="checkout-container">
-        <div class="checkout-header">
-          <h2 class="checkout-title">确认订单</h2>
-          <el-button
-            type="text"
-            icon="el-icon-close"
-            @click="showCheckout = false"
-          ></el-button>
+    <div class="bottom-bar" v-if="cartItems.length > 0">
+      <div class="bar-left">
+        <div class="select-all" @click="toggleSelectAll">
+          <div :class="['checkbox', { checked: isAllSelected }]">
+            <i class="el-icon-check" v-if="isAllSelected"></i>
+          </div>
+          <span>全选</span>
         </div>
+      </div>
+      <div class="bar-right">
+        <div class="total-info">
+          <span class="total-label">合计:</span>
+          <span class="total-price">¥{{ totalPrice }}</span>
+        </div>
+        <div
+          :class="['checkout-btn', { disabled: selectedCount === 0 }]"
+          @click="goToCheckout"
+        >
+          结算({{ selectedCount }})
+        </div>
+      </div>
+    </div>
 
-        <!-- 收货/交易方式 -->
-        <div class="delivery-section">
-          <div class="section-title">交易方式</div>
-          <el-radio-group v-model="deliveryType" class="delivery-options">
-            <el-radio-button label="faceToFace">
-              <div class="radio-option">
-                <i class="el-icon-location-circle"></i>
-                <div class="option-info">
-                  <div class="option-title">当面交易</div>
-                  <div class="option-desc">校园内面交，安全便捷</div>
-                </div>
-              </div>
-            </el-radio-button>
-            <el-radio-button label="express">
-              <div class="radio-option">
-                <i class="el-icon-s-promotion"></i>
-                <div class="option-info">
-                  <div class="option-title">快递寄送</div>
-                  <div class="option-desc">支持全国快递（到付）</div>
-                </div>
-              </div>
-            </el-radio-button>
-          </el-radio-group>
-
-          <div v-if="deliveryType === 'faceToFace'" class="meeting-place">
-            <el-select
-              v-model="meetingPlace"
-              placeholder="请选择面交地点"
-              style="width: 100%"
+    <el-dialog
+      title="确认订单"
+      :visible.sync="showCheckout"
+      width="500px"
+      custom-class="checkout-dialog"
+      :close-on-click-modal="false"
+    >
+      <div class="checkout-body">
+        <div class="checkout-section">
+          <div class="section-label">收货方式</div>
+          <el-select v-model="deliveryType" placeholder="请选择配送方式" class="delivery-select">
+            <el-option
+              v-for="item in deliveryOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
             >
-              <el-option label="一食堂门口" value="one_canteen"></el-option>
-              <el-option label="二食堂门口" value="two_canteen"></el-option>
-              <el-option label="图书馆门口" value="library"></el-option>
-              <el-option label="教学楼楼下" value="classroom"></el-option>
-              <el-option label="宿舍楼下" value="dormitory"></el-option>
-              <el-option label="其他地点" value="other"></el-option>
-            </el-select>
-          </div>
-
-          <div v-if="deliveryType === 'express'" class="express-address">
+              <div class="delivery-option-item">
+                <i :class="item.icon"></i>
+                <div class="option-text">
+                  <span class="option-label">{{ item.label }}</span>
+                </div>
+              </div>
+            </el-option>
+          </el-select>
+          <div class="address-input" v-if="deliveryType === 'face'">
             <el-input
-              v-model="expressAddress"
+              v-model="meetingPlace"
+              placeholder="请输入面交地点"
+              prefix-icon="el-icon-location"
+            />
+          </div>
+          <div class="address-input" v-else>
+            <el-input
               type="textarea"
+              v-model="expressAddress"
+              placeholder="请输入收货地址（省市区街道门牌号）"
               :rows="2"
-              placeholder="请输入校内宿舍地址（如：XX栋XX室）"
             />
           </div>
         </div>
 
-        <!-- 商品清单 -->
-        <div class="order-items">
-          <div class="section-title">商品清单</div>
-          <div
-            v-for="item in selectedItems"
-            :key="item.id"
-            class="order-item"
-          >
-            <el-image
-              :src="item.image"
-              class="order-image"
-              fit="cover"
-            />
-            <div class="order-info">
-              <div class="order-title">{{ item.title }}</div>
-              <div class="order-meta">
-                <span class="seller">卖家：{{ item.seller }}</span>
-                <span class="condition">{{ item.condition }}</span>
-              </div>
-              <div class="order-price">
-                <span class="price-symbol">¥</span>
-                <span class="price-value">{{ item.price }}</span>
+        <div class="checkout-section">
+          <div class="section-label">商品信息</div>
+          <div class="goods-list">
+            <div
+              v-for="item in selectedItems"
+              :key="item.id"
+              class="goods-item"
+            >
+              <el-image :src="item.image" class="goods-image" fit="cover" />
+              <div class="goods-info">
+                <div class="goods-title">{{ item.title }}</div>
+                <div class="goods-meta">
+                  <span class="goods-condition">{{ item.condition }}</span>
+                  <span class="goods-price">¥{{ item.price }}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 买家留言 -->
-        <div class="buyer-message">
-          <div class="section-title">买家留言</div>
+        <div class="checkout-section">
+          <div class="section-label">买家留言</div>
           <el-input
-            v-model="buyerMessage"
             type="textarea"
-            :rows="3"
-            placeholder="给卖家的备注，如：面交时间、颜色偏好等"
-            maxlength="200"
+            v-model="buyerMessage"
+            placeholder="选填，给卖家留言（如发货时间、包装要求等）"
+            :rows="2"
+            maxlength="100"
             show-word-limit
           />
         </div>
 
-        <!-- 订单总额 -->
-        <div class="order-total">
-          <div class="total-row">
-            <span class="total-label">商品总额：</span>
-            <span class="total-value">
-              <span class="price-symbol">¥</span>
-              <span class="price-value">{{ totalPrice }}</span>
-            </span>
+        <div class="checkout-section price-section">
+          <div class="price-row">
+            <span>商品金额</span>
+            <span>¥{{ totalPrice }}</span>
           </div>
-          <div class="total-row" v-if="discount > 0">
-            <span class="total-label">优惠：</span>
-            <span class="total-value" style="color: #f56c6c">
-              -¥{{ discount }}
-            </span>
+          <div class="price-row" v-if="deliveryType === 'express'">
+            <span>运费</span>
+            <span>¥{{ shippingFee }}</span>
           </div>
-          <div class="total-row total-row-highlight">
-            <span class="total-label">应付金额：</span>
-            <span class="total-value">
-              <span class="price-symbol">¥</span>
-              <span class="price-value">{{ totalPrice }}</span>
-            </span>
+          <div class="price-row total">
+            <span>实付款</span>
+            <span class="final-price">¥{{ finalPrice }}</span>
           </div>
         </div>
 
-        <!-- 支付方式 -->
-        <div class="payment-section">
-          <div class="section-title">支付方式</div>
-          <el-radio-group v-model="paymentMethod">
-            <el-radio label="wechat">
-              <i class="el-icon-chat-round"></i>
-              微信支付
-            </el-radio>
-            <el-radio label="alipay">
-              <i class="el-icon-bank-card"></i>
-              支付宝
-            </el-radio>
-            <el-radio label="campus">
-              <i class="el-icon-reading"></i>
-              校园卡余额
-            </el-radio>
-          </el-radio-group>
-        </div>
-
-        <!-- 提交订单 -->
-        <div class="checkout-actions">
-          <el-button
-            type="primary"
-            size="large"
-            class="submit-btn"
-            :loading="submitLoading"
-            @click="submitOrder"
-          >
-            确认支付
-            <span class="submit-price">¥{{ totalPrice }}</span>
-          </el-button>
+        <div class="checkout-section">
+          <div class="section-label">支付方式</div>
+          <div class="pay-methods">
+            <div
+              v-for="method in payMethods"
+              :key="method.value"
+              :class="['pay-item', { active: paymentMethod === method.value }]"
+              @click="paymentMethod = method.value"
+            >
+              <div :class="['pay-icon', method.value]">
+                <i :class="method.icon"></i>
+              </div>
+              <span>{{ method.label }}</span>
+              <i class="el-icon-check check-icon" v-if="paymentMethod === method.value"></i>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="showCheckout = false">取消</el-button>
+        <el-button type="primary" @click="submitOrder">
+          确认支付 ¥{{ finalPrice }}
+        </el-button>
+      </span>
+    </el-dialog>
 
     <xyh-footer />
   </div>
@@ -271,6 +237,9 @@
 <script>
 import XyhHeader from '@/components/XyhHeader'
 import XyhFooter from '@/components/XyhFooter'
+import { getCartList, addToCart, removeFromCart } from '@/api/business/cart'
+import { getProductPage } from '@/api/business/product'
+import { createOrder } from '@/api/business/order'
 
 export default {
   name: 'XyhCart',
@@ -280,54 +249,28 @@ export default {
   },
   data() {
     return {
+      isEditing: false,
       showCheckout: false,
-      deliveryType: 'faceToFace',
+      deliveryType: 'face',
       meetingPlace: '',
       expressAddress: '',
       buyerMessage: '',
       paymentMethod: 'wechat',
-      submitLoading: false,
-      cartItems: [
-        {
-          id: 1,
-          title: 'iPhone 13 Pro 256G 远峰蓝 95 新',
-          image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200',
-          seller: '学长小李',
-          condition: '95 新',
-          price: 5299,
-          selected: true
-        },
-        {
-          id: 2,
-          title: '捷安特山地自行车 9 成新',
-          image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=200',
-          seller: '学长小张',
-          condition: '9 成新',
-          price: 1299,
-          selected: true
-        },
-        {
-          id: 3,
-          title: 'Sony WH-1000XM4 降噪耳机',
-          image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200',
-          seller: '学姐小王',
-          condition: '95 新',
-          price: 1999,
-          selected: false
-        }
+      deliveryOptions: [
+        { label: '当面交易', value: 'face', icon: 'el-icon-user', desc: '校园内面交，安全便捷' },
+        { label: '快递配送', value: 'express', icon: 'el-icon-truck', desc: '全国配送，运费到付' }
+      ],
+      cartItems: [],
+      recommendList: [],
+      payMethods: [
+        { label: '微信支付', value: 'wechat', icon: 'el-icon-chat-round' },
+        { label: '支付宝', value: 'alipay', icon: 'el-icon-bank-card' }
       ]
     }
   },
   computed: {
-    selectAll: {
-      get() {
-        return this.cartItems.length > 0 && this.cartItems.every(item => item.selected)
-      },
-      set(value) {
-        this.cartItems.forEach(item => {
-          item.selected = value
-        })
-      }
+    isAllSelected() {
+      return this.cartItems.length > 0 && this.cartItems.every(item => item.selected)
     },
     selectedItems() {
       return this.cartItems.filter(item => item.selected)
@@ -336,25 +279,94 @@ export default {
       return this.selectedItems.length
     },
     totalPrice() {
-      return this.selectedItems.reduce((sum, item) => sum + item.price, 0)
+      return this.selectedItems.reduce((sum, item) => sum + Number(item.price), 0)
     },
-    discount() {
-      return this.totalPrice > 3000 ? 200 : 0
+    shippingFee() {
+      return this.deliveryType === 'express' ? 10 : 0
+    },
+    finalPrice() {
+      return this.totalPrice + this.shippingFee
     }
   },
+  created() {
+    this.loadCartList()
+    this.loadRecommendProducts()
+  },
   methods: {
-    toggleSelectAll(value) {
+    async loadCartList() {
+      try {
+        const res = await getCartList()
+        if (res.code === 200) {
+          this.cartItems = (res.data.list || []).map(item => this.convertToCartItem(item))
+        }
+      } catch (error) {
+        console.error('加载购物车失败', error)
+      }
+    },
+    convertToCartItem(item) {
+      const images = item.images && item.images.length > 0 ? item.images : ['https://picsum.photos/200/200?random=default']
+      return {
+        id: item.cartId,
+        cartId: item.cartId,
+        productId: item.productId,
+        title: item.title,
+        description: item.description || '',
+        image: images[0],
+        price: item.price,
+        condition: item.condition,
+        freeShipping: item.freeShipping,
+        status: 'onsale',
+        selected: false,
+        sellerName: item.sellerName,
+        sellerAvatar: item.sellerAvatar
+      }
+    },
+    async loadRecommendProducts() {
+      try {
+        const res = await getProductPage({ pageNum: 1, pageSize: 6 })
+        if (res.code === 200) {
+          this.recommendList = (res.data.list || []).map(item => ({
+            id: item.productId,
+            productId: item.productId,
+            title: item.title,
+            price: item.price,
+            image: (item.images && item.images.length > 0) ? item.images[0] : 'https://picsum.photos/200/200?random=default'
+          }))
+        }
+      } catch (error) {
+        console.error('加载推荐失败', error)
+      }
+    },
+    toggleEdit() {
+      this.isEditing = !this.isEditing
+    },
+    toggleSelect(item) {
+      item.selected = !item.selected
+    },
+    toggleSelectAll() {
+      const newState = !this.isAllSelected
       this.cartItems.forEach(item => {
-        item.selected = value
+        item.selected = newState
       })
     },
-    removeItem(id) {
-      this.$confirm('确定要从购物车中移除该商品吗？', '提示', {
-        type: 'warning'
-      }).then(() => {
+    async removeItem(id) {
+      try {
+        await this.$confirm('确定要删除该商品吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        await removeFromCart(id)
         this.cartItems = this.cartItems.filter(item => item.id !== id)
-        this.$message.success('已移除')
-      })
+        this.$message.success('已删除')
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('删除失败', error)
+        }
+      }
+    },
+    goToDetail(id) {
+      this.$router.push(`/goods/${id}`)
     },
     goToHome() {
       this.$router.push('/home')
@@ -366,237 +378,221 @@ export default {
       }
       this.showCheckout = true
     },
-    submitOrder() {
-      if (this.deliveryType === 'faceToFace' && !this.meetingPlace) {
-        this.$message.warning('请选择面交地点')
-        return
-      }
-      
-      if (this.deliveryType === 'express' && !this.expressAddress) {
-        this.$message.warning('请输入宿舍地址')
-        return
-      }
-      
-      this.submitLoading = true
-      
-      // 模拟提交订单
-      setTimeout(() => {
-        this.submitLoading = false
-        this.$message.success('订单提交成功！')
+    async submitOrder() {
+      try {
+        if (this.deliveryType === 'face' && !this.meetingPlace) {
+          this.$message.warning('请输入面交地点')
+          return
+        }
+        if (this.deliveryType === 'express' && !this.expressAddress) {
+          this.$message.warning('请输入收货地址')
+          return
+        }
+        for (const item of this.selectedItems) {
+          await createOrder({
+            productId: item.productId,
+            tradeMethod: this.deliveryType === 'face' ? '当面交易' : '快递配送',
+            meetingPlace: this.meetingPlace,
+            address: this.expressAddress
+          })
+        }
+        this.$message.success('订单提交成功')
         this.showCheckout = false
         this.cartItems = this.cartItems.filter(item => !item.selected)
-        this.$router.push('/home')
-      }, 1500)
+      } catch (error) {
+        console.error('提交订单失败', error)
+        this.$message.error('提交订单失败')
+      }
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.xyh-cart {
+.cart-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #f5f5f5;
+  padding-bottom: 70px;
 }
 
-.cart-container {
-  max-width: 1000px;
+.cart-content {
+  max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 12px;
 }
 
-.cart-header {
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #1890ff;
-  
-  .cart-title {
-    font-size: 24px;
+  padding: 16px 0;
+
+  .page-title {
+    font-size: 20px;
     font-weight: 600;
     color: #333;
   }
-  
-  .item-count {
+
+  .edit-btn {
     font-size: 14px;
-    color: #999;
+    color: #ff6b00;
+    cursor: pointer;
   }
 }
 
-.cart-items {
+.cart-list {
   .cart-item {
     display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 20px;
+    align-items: flex-start;
+    gap: 12px;
     background: #fff;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s;
-    
-    &:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    }
-    
-    .select-checkbox {
-      flex-shrink: 0;
-    }
-    
-    .item-image {
-      width: 120px;
-      height: 120px;
-      border-radius: 8px;
-      flex-shrink: 0;
-    }
-    
-    .item-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      
-      .item-title {
-        font-size: 16px;
-        color: #333;
-        margin-bottom: 8px;
-        line-height: 1.5;
-      }
-      
-      .item-meta {
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+
+    .item-checkbox {
+      padding-top: 30px;
+
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 16px;
-        font-size: 13px;
-        color: #999;
-        margin-bottom: 8px;
-        
-        .seller {
-          color: #666;
-        }
-        
-        .condition {
-          background: #f5f5f5;
-          padding: 2px 8px;
-          border-radius: 4px;
-        }
-      }
-      
-      .item-price {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-        
-        .price-symbol {
-          color: #f5222d;
-          font-size: 14px;
-        }
-        
-        .price-value {
-          color: #f5222d;
-          font-size: 24px;
-          font-weight: 700;
-        }
-      }
-    }
-    
-    .item-actions {
-      .el-button {
-        background: #f5f7fa;
-        border: none;
-        color: #f5222d;
-        
-        &:hover {
-          background: #fef0f0;
-        }
-      }
-    }
-  }
-}
+        justify-content: center;
+        cursor: pointer;
 
-.cart-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  padding: 16px 20px;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 100;
-  
-  .footer-left {
-    .el-checkbox {
-      font-size: 16px;
-      color: #333;
-    }
-  }
-  
-  .footer-center {
-    flex: 1;
-    margin: 0 40px;
-    
-    .total-info {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-      
-      .label {
-        font-size: 16px;
-        color: #666;
-      }
-      
-      .total-price {
-        .price-symbol {
-          color: #f5222d;
-          font-size: 20px;
-        }
-        
-        .price-value {
-          color: #f5222d;
-          font-size: 32px;
-          font-weight: 700;
+        &.checked {
+          background: #ff6b00;
+          border-color: #ff6b00;
+
+          i {
+            color: #fff;
+            font-size: 12px;
+          }
         }
       }
     }
-    
-    .discount-info {
-      margin-top: 4px;
-      
-      .discount-label {
-        font-size: 13px;
-        color: #666;
+
+    .item-image {
+      width: 90px;
+      height: 90px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+
+      .image-error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: #f9f9f9;
+        color: #ccc;
+        font-size: 32px;
       }
-      
-      .discount-value {
+
+      .sold-tag {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
         font-size: 14px;
-        color: #f56c6c;
       }
     }
-  }
-  
-  .footer-right {
-    .checkout-btn {
-      background: linear-gradient(135deg, #1890ff 0%, #00b4b8 100%);
-      border: none;
-      height: 56px;
-      padding: 0 32px;
-      font-size: 18px;
-      font-weight: 600;
-      
-      .count-badge {
-        margin-left: 8px;
-        background: rgba(255, 255, 255, 0.3);
-        padding: 2px 8px;
-        border-radius: 12px;
+
+    .item-info {
+      flex: 1;
+      min-width: 0;
+
+      .item-title {
         font-size: 14px;
+        color: #333;
+        line-height: 1.4;
+        margin-bottom: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
-      
+
+      .item-desc {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 6px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .item-tags {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+
+        .tag {
+          font-size: 11px;
+          padding: 2px 6px;
+          border-radius: 4px;
+          background: #f5f5f5;
+          color: #666;
+
+          &.condition {
+            background: #fff5e6;
+            color: #ff6b00;
+          }
+        }
+      }
+
+      .item-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .item-price {
+          display: flex;
+          align-items: baseline;
+
+          .price-symbol {
+            font-size: 12px;
+            color: #ff4d4f;
+          }
+
+          .price-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ff4d4f;
+          }
+        }
+
+        .seller-info {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          .seller-name {
+            font-size: 12px;
+            color: #999;
+          }
+        }
+      }
+    }
+
+    .item-delete {
+      padding: 8px;
+      color: #999;
+      cursor: pointer;
+
       &:hover {
-        opacity: 0.9;
+        color: #ff4d4f;
       }
     }
   }
@@ -606,337 +602,442 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
+  padding: 60px 20px;
   background: #fff;
-  border-radius: 8px;
-  margin-top: 20px;
-  
+  border-radius: 12px;
+
   .empty-icon {
-    font-size: 80px;
-    margin-bottom: 24px;
-  }
-  
-  .empty-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 12px;
-  }
-  
-  .empty-desc {
-    font-size: 16px;
-    color: #999;
-    margin-bottom: 32px;
-  }
-  
-  .go-shopping-btn {
-    background: linear-gradient(135deg, #1890ff 0%, #00b4b8 100%);
-    border: none;
-    height: 52px;
-    padding: 0 48px;
-    font-size: 18px;
-    font-weight: 600;
-  }
-}
-
-.checkout-section {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.checkout-container {
-  background: #fff;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.checkout-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 32px;
-  border-bottom: 1px solid #e8e8e8;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  
-  .checkout-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #fff;
-  }
-  
-  .el-button {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: #fff;
-    
-    &:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-  }
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  padding: 20px 32px 12px;
-  margin-bottom: 0;
-}
-
-.delivery-section {
-  padding: 0 32px 24px;
-  
-  .delivery-options {
-    .el-radio-button {
-      flex: 1;
-      
-      .el-radio-button__inner {
-        padding: 20px 12px;
-      }
-      
-      &.is-active .el-radio-button__inner {
-        background: #e6f7ff;
-        border-color: #1890ff;
-      }
-    }
-    
-    .radio-option {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      
-      i {
-        font-size: 24px;
-        color: #1890ff;
-      }
-      
-      .option-info {
-        .option-title {
-          font-size: 16px;
-          font-weight: 600;
-          color: #333;
-        }
-        
-        .option-desc {
-          font-size: 13px;
-          color: #999;
-        }
-      }
-    }
-  }
-  
-  .meeting-place,
-  .express-address {
-    margin-top: 16px;
-  }
-}
-
-.order-items {
-  padding: 0 32px 24px;
-  border-top: 1px solid #e8e8e8;
-  
-  .order-item {
+    width: 80px;
+    height: 80px;
+    background: #f5f5f5;
+    border-radius: 50%;
     display: flex;
-    gap: 16px;
-    padding: 16px 0;
-    border-bottom: 1px solid #f5f7fa;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    .order-image {
-      width: 80px;
-      height: 80px;
-      border-radius: 8px;
-      flex-shrink: 0;
-    }
-    
-    .order-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      
-      .order-title {
-        font-size: 14px;
-        color: #333;
-        margin-bottom: 8px;
-      }
-      
-      .order-meta {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        font-size: 12px;
-        color: #999;
-        margin-bottom: 8px;
-        
-        .seller {
-          color: #666;
-        }
-        
-        .condition {
-          background: #f5f5f5;
-          padding: 2px 8px;
-          border-radius: 4px;
-        }
-      }
-      
-      .order-price {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-        
-        .price-symbol {
-          color: #f5222d;
-          font-size: 12px;
-        }
-        
-        .price-value {
-          color: #f5222d;
-          font-size: 18px;
-          font-weight: 600;
-        }
-      }
-    }
-  }
-}
-
-.buyer-message {
-  padding: 0 32px 24px;
-}
-
-.order-total {
-  padding: 24px 32px;
-  background: #f5f7fa;
-  border-top: 1px solid #e8e8e8;
-  
-  .total-row {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    
-    .total-label {
-      font-size: 14px;
-      color: #666;
-    }
-    
-    .total-value {
-      font-size: 14px;
-      color: #333;
-      
-      .price-symbol {
-        color: #f5222d;
-        font-size: 12px;
-      }
-      
-      .price-value {
-        color: #333;
-        font-size: 14px;
-        font-weight: 500;
-      }
+    justify-content: center;
+    margin-bottom: 16px;
+
+    i {
+      font-size: 40px;
+      color: #ccc;
     }
   }
-  
-  .total-row-highlight {
-    .total-label {
+
+  .empty-text {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .empty-desc {
+    font-size: 14px;
+    color: #999;
+    margin-bottom: 20px;
+  }
+
+  .empty-btn {
+    padding: 10px 32px;
+    background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
+    color: #fff;
+    font-size: 14px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+}
+
+.recommend-section {
+  margin-top: 20px;
+
+  .section-header {
+    padding: 16px 0;
+
+    .section-title {
       font-size: 16px;
       font-weight: 600;
       color: #333;
     }
-    
-    .total-value {
-      .price-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #f5222d;
+  }
+
+  .recommend-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .recommend-item {
+      flex-shrink: 0;
+      width: 140px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+
+      .recommend-image {
+        width: 140px;
+        height: 140px;
+      }
+
+      .image-error-small {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: #f9f9f9;
+        color: #ccc;
+        font-size: 32px;
+      }
+
+      .recommend-info {
+        padding: 8px;
+
+        .recommend-title {
+          font-size: 13px;
+          color: #333;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          margin-bottom: 4px;
+        }
+
+        .recommend-price {
+          font-size: 14px;
+          font-weight: 600;
+          color: #ff4d4f;
+        }
       }
     }
   }
 }
 
-.payment-section {
-  padding: 0 32px 24px;
-  
-  .el-radio {
-    margin-bottom: 12px;
-    
-    .el-radio__label {
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+
+  .bar-left {
+    .select-all {
       display: flex;
       align-items: center;
       gap: 8px;
+      cursor: pointer;
+
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &.checked {
+          background: #ff6b00;
+          border-color: #ff6b00;
+
+          i {
+            color: #fff;
+            font-size: 12px;
+          }
+        }
+      }
+
+      span {
+        font-size: 14px;
+        color: #333;
+      }
+    }
+  }
+
+  .bar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .total-info {
+      .total-label {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .total-price {
+        font-size: 20px;
+        font-weight: 600;
+        color: #ff4d4f;
+      }
+    }
+
+    .checkout-btn {
+      padding: 10px 24px;
+      background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 20px;
+      cursor: pointer;
+
+      &.disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.checkout-dialog {
+  border-radius: 12px;
+
+  .el-dialog__header {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 16px 20px;
+
+    .el-dialog__title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+  }
+
+  .el-dialog__body {
+    padding: 0;
+  }
+
+  .el-dialog__footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 16px 20px;
+
+    .el-button--primary {
+      background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
+      border: none;
+    }
+  }
+
+  .checkout-body {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .checkout-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .section-label {
+      font-size: 14px;
+      color: #999;
+      margin-bottom: 12px;
+    }
+  }
+
+  .delivery-select {
+    width: 100%;
+    margin-bottom: 12px;
+
+    .el-input__inner {
+      border-radius: 8px;
+    }
+  }
+
+  .address-input {
+    .el-input__inner,
+    .el-textarea__inner {
+      border-radius: 8px;
+    }
+  }
+
+  .goods-list {
+    max-height: 180px;
+    overflow-y: auto;
+
+    .goods-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .goods-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
+        flex-shrink: 0;
+      }
+
+      .goods-info {
+        flex: 1;
+        min-width: 0;
+
+        .goods-title {
+          font-size: 14px;
+          color: #333;
+          margin-bottom: 8px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .goods-meta {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .goods-condition {
+            font-size: 12px;
+            color: #999;
+          }
+
+          .goods-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ff4d4f;
+          }
+        }
+      }
+    }
+  }
+
+  .price-section {
+    background: #fafafa;
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #666;
+
+      &.total {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e8e8e8;
+        font-size: 15px;
+        color: #333;
+
+        .final-price {
+          font-size: 20px;
+          font-weight: 600;
+          color: #ff4d4f;
+        }
+      }
+    }
+  }
+
+  .pay-methods {
+    display: flex;
+    gap: 12px;
+
+    .pay-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: #ff6b00;
+      }
+
+      &.active {
+        border-color: #ff6b00;
+        background: #fff5e6;
+      }
+
+      .pay-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        i {
+          font-size: 18px;
+          color: #fff;
+        }
+
+        &.wechat {
+          background: #07c160;
+        }
+
+        &.alipay {
+          background: #1677ff;
+        }
+      }
+
+      > span {
+        flex: 1;
+        font-size: 14px;
+        color: #333;
+      }
+
+      .check-icon {
+        color: #ff6b00;
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+.delivery-option-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.4;
+  padding: 8px 0;
+
+  > i {
+    font-size: 18px;
+    color: #ff6b00;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  }
+
+  .option-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    .option-label {
       font-size: 14px;
       color: #333;
-      
-      i {
-        color: #1890ff;
-      }
+      line-height: 1.4;
     }
-  }
-}
 
-.checkout-actions {
-  padding: 24px 32px;
-  border-top: 1px solid #e8e8e8;
-  
-  .submit-btn {
-    width: 100%;
-    height: 56px;
-    font-size: 18px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #1890ff 0%, #00b4b8 100%);
-    border: none;
-    
-    .submit-price {
-      margin-left: 12px;
-      font-size: 24px;
-      font-weight: 700;
+    .option-desc {
+      font-size: 12px;
+      color: #999;
+      line-height: 1.4;
     }
-    
-    &:hover {
-      opacity: 0.9;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .cart-footer {
-    flex-direction: column;
-    padding: 12px;
-    
-    .footer-center {
-      margin: 12px 0;
-    }
-    
-    .footer-right {
-      width: 100%;
-      
-      .checkout-btn {
-        width: 100%;
-      }
-    }
-  }
-  
-  .checkout-container {
-    max-height: 100vh;
-    border-radius: 0;
   }
 }
 </style>

@@ -1,5 +1,16 @@
 import request from '@/utils/request'
 
+export function uploadFile(data) {
+    return request({
+        url: '/system/oss/upload',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+
 export function getFilePage(data) {
     return request({
         url: '/system/file/page',

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.abc.business.mapper.CartMapper">
+
+    <resultMap type="com.abc.business.domain.entity.Cart" id="CartResult">
+        <result property="cartId" column="cart_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="title" column="title"/>
+        <result property="images" column="images"/>
+        <result property="price" column="price"/>
+        <result property="productCondition" column="product_condition"/>
+        <result property="freeShipping" column="free_shipping"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="sellerName" column="seller_name"/>
+        <result property="sellerAvatar" column="seller_avatar"/>
+    </resultMap>
+
+    <sql id="selectCartVo">
+        select c.cart_id, c.user_id, c.product_id, c.create_time,
+               p.title, p.images, p.price, p.product_condition, p.free_shipping, p.seller_id,
+               u.nickname as seller_name, u.avatar as seller_avatar
+        from tb_cart c
+        left join tb_product p on c.product_id = p.product_id
+        left join tb_user u on p.seller_id = u.user_id
+    </sql>
+
+    <select id="selectCartList" resultMap="CartResult">
+        <include refid="selectCartVo"/>
+        <where>
+            <if test="userId != null">and c.user_id = #{userId}</if>
+        </where>
+        order by c.create_time desc
+    </select>
+
+</mapper>

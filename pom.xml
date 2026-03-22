@@ -12,6 +12,7 @@
         <module>regood-system</module>
         <module>regood-common</module>
         <module>regood-api</module>
+        <module>regood-business</module>
     </modules>
 
     <properties>
@@ -164,6 +165,11 @@
             <dependency>
                 <groupId>com.abc</groupId>
                 <artifactId>regood-system</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.abc</groupId>
+                <artifactId>regood-business</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
         </dependencies>

@@ -79,20 +79,6 @@ export const constantRoutes = [
       }
     ]
   },
-  {
-    path: '/profile',
-    component: Layout,
-    redirect: '/profile/index',
-    hidden: true,
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/views/profile/index'),
-        name: 'Profile',
-        meta: { title: '个人信息', icon: 'user', noCache: true }
-      }
-    ]
-  }
 ]
 
 /**
@@ -105,7 +91,7 @@ export const dynamicRoutes = [
 ]
 
 const createRouter = () => new Router({
-  // mode: 'history', // require service support
+  mode: 'history', // require service support
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })

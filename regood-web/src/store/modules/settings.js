@@ -11,7 +11,7 @@ const state = {
   fixedHeader: fixedHeader,
   sidebarLogo: sidebarLogo,
   whiteList: [],
-  baseWhiteList: ['/admin/login', '/admin/auth-redirect'],
+  baseWhiteList: ['/login', '/admin/auth-redirect'],
   isWhiteListLoaded: false
 }
 

@@ -7,6 +7,8 @@ system:
     - /system/white/routes
     - /system/captcha
     - /system/sendRegisterEmail
+    - /business/product/page
+    - /business/category/tree
 
 server:
   port: ${server.port}

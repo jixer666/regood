@@ -297,7 +297,8 @@ export default {
         this.loading = true
         await this.$store.dispatch('user/login', {
           username: this.passwordForm.username.trim(),
-          password: this.passwordForm.password
+          password: this.passwordForm.password,
+          authType: 1
         })
         this.$message.success('登录成功')
       } catch (error) {
@@ -310,8 +311,11 @@ export default {
       try {
         await this.$refs.smsForm.validate()
         this.loading = true
-        // 模拟短信登录
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await this.$store.dispatch('user/login', {
+          username: this.smsForm.phone.trim(),
+          password: this.smsForm.code,
+          authType: 2
+        })
         this.$message.success('登录成功')
         this.$router.push('/home')
       } catch (error) {
@@ -324,8 +328,11 @@ export default {
       try {
         await this.$refs.registerForm.validate()
         this.loading = true
-        // 模拟注册
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await this.$store.dispatch('user/login', {
+          username: this.registerForm.username.trim(),
+          password: this.registerForm.password,
+          authType: 1
+        })
         this.$message.success('注册成功，请登录')
         this.activeTab = 'password'
         this.passwordForm.username = this.registerForm.username
