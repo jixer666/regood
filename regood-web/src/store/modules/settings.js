@@ -11,7 +11,7 @@ const state = {
   fixedHeader: fixedHeader,
   sidebarLogo: sidebarLogo,
   whiteList: [],
-  baseWhiteList: ['/login', '/admin/auth-redirect'],
+  baseWhiteList: ['/login', '/admin/auth-redirect', '/home', '/goods', '/admin/login'],
   isWhiteListLoaded: false
 }
 
@@ -54,6 +54,9 @@ const actions = {
         resolve(state.whiteList)
       } catch (error) {
         commit('SET_WHITE_LIST_LOADED', true)
+        state.baseWhiteList.forEach(item => {
+          commit('SET_WHITE_LIST', item)
+        })
         resolve(state.whiteList)
       }
     })

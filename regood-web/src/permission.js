@@ -1,12 +1,31 @@
 import router from './router'
 import store from './store'
 import { Message } from 'element-ui'
-import NProgress from 'nprogress' // progress bar
-import 'nprogress/nprogress.css' // progress bar style
-import { getToken } from '@/utils/auth' // get token from cookie
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+import { getToken } from '@/utils/auth'
 import getPageTitle from '@/utils/get-page-title'
 
-NProgress.configure({ showSpinner: false }) // NProgress Configuration
+NProgress.configure({ showSpinner: false })
+
+function isWhitePath(path, whiteList) {
+  if (whiteList.indexOf(path) !== -1) {
+    return true
+  }
+  for (let i = 0; i < whiteList.length; i++) {
+    const whitePath = whiteList[i]
+    if (whitePath.endsWith('/*') || whitePath.endsWith('/:id')) {
+      const basePath = whitePath.replace(/\/\*$/, '').replace(/\/:id$/, '')
+      if (path.startsWith(basePath + '/')) {
+        return true
+      }
+    }
+    if (path.startsWith(whitePath + '/')) {
+      return true
+    }
+  }
+  return false
+}
 
 
 router.beforeEach(async (to, from, next) => {
@@ -18,6 +37,7 @@ router.beforeEach(async (to, from, next) => {
 
   // determine whether the user has logged in
   const hasToken = getToken()
+  console.log(to.path)
 
   if (hasToken) {
     if (to.path === '/admin/login') {
@@ -62,12 +82,9 @@ router.beforeEach(async (to, from, next) => {
       next();
     } else {
       const whiteList = await store.dispatch('settings/getWhiteList')
-      /* has no token*/
-      if (whiteList.indexOf(to.path) !== -1) {
-        // in the free login whitelist, go directly
+      if (isWhitePath(to.path, whiteList)) {
         next({ ...to, replace: true })
       } else {
-        // other pages that do not have permission to access are redirected to the login page.
         next(`/home`)
         NProgress.done()
       }

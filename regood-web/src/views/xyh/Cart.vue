@@ -401,7 +401,6 @@ export default {
         this.cartItems = this.cartItems.filter(item => !item.selected)
       } catch (error) {
         console.error('提交订单失败', error)
-        this.$message.error('提交订单失败')
       }
     }
   }

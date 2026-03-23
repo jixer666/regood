@@ -9,6 +9,7 @@ system:
     - /system/sendRegisterEmail
     - /business/product/page
     - /business/category/tree
+    - /business/product/detail
 
 server:
   port: ${server.port}

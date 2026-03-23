@@ -40,7 +40,12 @@ public class ProductController {
     @ApiOperation("查询商品详情")
     @GetMapping("/detail")
     public ApiResult<ProductVO> getProductDetail(@RequestParam Long productId) {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = null;
+        try {
+            userId = SecurityUtils.getUserId();
+        } catch (Exception e) {
+
+        }
         ProductVO productVO = productService.getProductDetail(productId, userId);
         return ApiResult.success(productVO);
     }

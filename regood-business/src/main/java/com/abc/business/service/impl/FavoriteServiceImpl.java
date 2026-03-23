@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class FavoriteServiceImpl extends BaseServiceImpl<FavoriteMapper, Favorite> implements FavoriteService {
@@ -58,6 +59,9 @@ public class FavoriteServiceImpl extends BaseServiceImpl<FavoriteMapper, Favorit
 
     @Override
     public boolean isFavorite(Long productId, Long userId) {
+        if (Objects.isNull(productId) || Objects.isNull(userId)) {
+            return false;
+        }
         LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Favorite::getUserId, userId).eq(Favorite::getProductId, productId);
         return favoriteMapper.selectCount(wrapper) > 0;

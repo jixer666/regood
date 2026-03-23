@@ -1,7 +1,6 @@
 <template>
   <div class="login-container">
     <div class="login-wrapper">
-      <!-- 左侧插画区 -->
       <div class="login-left">
         <div class="illustration">
           <div class="campus-scene">
@@ -29,89 +28,44 @@
         </div>
       </div>
 
-      <!-- 右侧表单区 -->
       <div class="login-right">
         <div class="login-box">
           <div class="login-header">
             <h2 class="login-title">欢迎回来</h2>
-            <p class="login-subtitle">请登录您的账号</p>
+            <p class="login-subtitle">登录/注册后开启校园交易之旅</p>
           </div>
 
-          <!-- Tab 切换 -->
-          <el-tabs v-model="activeTab" class="login-tabs">
-            <el-tab-pane label="密码登录" name="password"></el-tab-pane>
-            <el-tab-pane label="验证码登录" name="sms"></el-tab-pane>
-            <el-tab-pane label="账号注册" name="register"></el-tab-pane>
-          </el-tabs>
-
-          <!-- 密码登录表单 -->
           <el-form
-            v-show="activeTab === 'password'"
-            ref="passwordForm"
-            :model="passwordForm"
-            :rules="passwordRules"
+            ref="loginForm"
+            :model="loginForm"
+            :rules="loginRules"
             class="login-form"
           >
-            <el-form-item prop="username">
+            <el-form-item prop="email">
               <el-input
-                v-model="passwordForm.username"
-                placeholder="请输入手机号/学号/邮箱"
-                prefix-icon="el-icon-user"
+                v-model="loginForm.email"
+                placeholder="请输入邮箱地址"
+                prefix-icon="el-icon-message"
                 size="large"
               />
             </el-form-item>
-            <el-form-item prop="password">
-              <el-input
-                v-model="passwordForm.password"
-                type="password"
-                placeholder="请输入密码"
-                prefix-icon="el-icon-lock"
-                size="large"
-                @keyup.enter.native="handlePasswordLogin"
-              />
-            </el-form-item>
-            <div class="form-options">
-              <el-checkbox v-model="passwordForm.remember">记住密码</el-checkbox>
-              <el-link type="primary" :underline="false">忘记密码？</el-link>
-            </div>
-            <el-button
-              type="primary"
-              size="large"
-              class="login-btn"
-              :loading="loading"
-              @click="handlePasswordLogin"
-            >
-              登录
-            </el-button>
-          </el-form>
-
-          <!-- 验证码登录表单 -->
-          <el-form
-            v-show="activeTab === 'sms'"
-            ref="smsForm"
-            :model="smsForm"
-            :rules="smsRules"
-            class="login-form"
-          >
-            <el-form-item prop="phone">
-              <el-input
-                v-model="smsForm.phone"
-                placeholder="请输入手机号"
-                prefix-icon="el-icon-mobile"
-                size="large"
-              />
-            </el-form-item>
-            <el-form-item prop="code">
-              <div class="code-input">
+            <el-form-item prop="emailCode">
+              <div class="code-input-wrapper">
                 <el-input
-                  v-model="smsForm.code"
-                  placeholder="请输入验证码"
+                  v-model="loginForm.emailCode"
+                  placeholder="请输入6位验证码"
                   prefix-icon="el-icon-key"
                   size="large"
+                  maxlength="6"
+                  class="code-input"
+                  @keyup.enter.native="handleLogin"
                 />
                 <el-button
                   class="send-code-btn"
+                  :class="{ 'is-disabled': countdown > 0 }"
                   :disabled="countdown > 0"
+                  :loading="sendingCode"
+                  size="large"
                   @click="handleSendCode"
                 >
                   {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
@@ -123,90 +77,28 @@
               size="large"
               class="login-btn"
               :loading="loading"
-              @click="handleSmsLogin"
+              @click="handleLogin"
             >
-              登录
+              登录 / 注册
             </el-button>
           </el-form>
 
-          <!-- 注册表单 -->
-          <el-form
-            v-show="activeTab === 'register'"
-            ref="registerForm"
-            :model="registerForm"
-            :rules="registerRules"
-            class="login-form"
-          >
-            <el-form-item prop="username">
-              <el-input
-                v-model="registerForm.username"
-                placeholder="请输入手机号"
-                prefix-icon="el-icon-mobile"
-                size="large"
-              />
-            </el-form-item>
-            <el-form-item prop="password">
-              <el-input
-                v-model="registerForm.password"
-                type="password"
-                placeholder="请设置密码（6-20 位）"
-                prefix-icon="el-icon-lock"
-                size="large"
-              />
-            </el-form-item>
-            <el-form-item prop="code">
-              <div class="code-input">
-                <el-input
-                  v-model="registerForm.code"
-                  placeholder="请输入验证码"
-                  prefix-icon="el-icon-key"
-                  size="large"
-                />
-                <el-button
-                  class="send-code-btn"
-                  :disabled="countdown > 0"
-                  @click="handleSendCode"
-                >
-                  {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
-                </el-button>
-              </div>
-            </el-form-item>
-            <el-form-item prop="studentId">
-              <el-input
-                v-model="registerForm.studentId"
-                placeholder="请输入学号（选填，认证后可提高信誉度）"
-                prefix-icon="el-icon-reading"
-                size="large"
-              />
-            </el-form-item>
-            <div class="security-tip">
-              <span class="tip-icon">🛡️</span>
-              <span class="tip-text">保障平台交易安全 · 学籍认证后可解锁更多功能</span>
-            </div>
-            <el-button
-              type="primary"
-              size="large"
-              class="login-btn"
-              :loading="loading"
-              @click="handleRegister"
-            >
-              立即注册
-            </el-button>
-          </el-form>
-
-          <!-- 第三方登录 -->
           <div class="third-party-login">
             <div class="divider">
               <span>其他登录方式</span>
             </div>
             <div class="third-party-icons">
-              <div class="third-icon wechat" title="微信登录">
+              <div class="third-icon wechat" title="微信登录" @click="handleSocialLogin('wechat')">
                 <i class="el-icon-chat-round"></i>
               </div>
-              <div class="third-icon qq" title="QQ 登录">
+              <div class="third-icon qq" title="QQ 登录" @click="handleSocialLogin('qq')">
                 <i class="el-icon-chat-dot-square"></i>
               </div>
             </div>
+          </div>
+
+          <div class="footer-agreement">
+            登录即同意 <a href="#" @click.prevent="showAgreement('user')">用户协议</a> 和 <a href="#" @click.prevent="showAgreement('privacy')">隐私政策</a>
           </div>
         </div>
       </div>
@@ -216,62 +108,46 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import { sendRegisterEmail } from '@/api/system/user'
 
 export default {
   name: 'XyhLogin',
   data() {
-    const validatePhone = (rule, value, callback) => {
+    const validateEmail = (rule, value, callback) => {
       if (!value) {
-        callback(new Error('请输入手机号'))
-      } else if (!/^1[3-9]\d{9}$/.test(value)) {
-        callback(new Error('请输入正确的手机号'))
+        callback(new Error('请输入邮箱地址'))
+      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+        callback(new Error('请输入正确的邮箱地址'))
       } else {
         callback()
       }
     }
 
-    const validatePassword = (rule, value, callback) => {
+    const validateCode = (rule, value, callback) => {
       if (!value) {
-        callback(new Error('请输入密码'))
-      } else if (value.length < 6 || value.length > 20) {
-        callback(new Error('密码长度为 6-20 位'))
+        callback(new Error('请输入验证码'))
+      } else if (value.length !== 6) {
+        callback(new Error('验证码为6位数字'))
       } else {
         callback()
       }
     }
 
     return {
-      activeTab: 'password',
+      loginForm: {
+        email: '',
+        emailCode: '',
+        authType: 2,
+        emailUuid: ''
+      },
+      loginRules: {
+        email: [{ required: true, validator: validateEmail, trigger: 'blur' }],
+        emailCode: [{ required: true, validator: validateCode, trigger: 'blur' }]
+      },
       loading: false,
+      sendingCode: false,
       countdown: 0,
-      passwordForm: {
-        username: '',
-        password: '',
-        remember: false
-      },
-      smsForm: {
-        phone: '',
-        code: ''
-      },
-      registerForm: {
-        username: '',
-        password: '',
-        code: '',
-        studentId: ''
-      },
-      passwordRules: {
-        username: [{ required: true, message: '请输入手机号/学号/邮箱', trigger: 'blur' }],
-        password: [{ required: true, validator: validatePassword, trigger: 'blur' }]
-      },
-      smsRules: {
-        phone: [{ required: true, validator: validatePhone, trigger: 'blur' }],
-        code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
-      },
-      registerRules: {
-        username: [{ required: true, validator: validatePhone, trigger: 'blur' }],
-        password: [{ required: true, validator: validatePassword, trigger: 'blur' }],
-        code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
-      }
+      timer: null
     }
   },
   computed: {
@@ -287,79 +163,74 @@ export default {
       immediate: true
     }
   },
+  beforeUnmount() {
+    if (this.timer) {
+      clearInterval(this.timer)
+    }
+  },
   created() {
     this.redirect = this.$route.query.redirect
+    const isRegister = this.$route.query.isRegister
+    if (isRegister) {
+      this.$message.info('请完成注册')
+    }
   },
   methods: {
-    async handlePasswordLogin() {
-      try {
-        await this.$refs.passwordForm.validate()
-        this.loading = true
-        await this.$store.dispatch('user/login', {
-          username: this.passwordForm.username.trim(),
-          password: this.passwordForm.password,
-          authType: 1
-        })
-        this.$message.success('登录成功')
-      } catch (error) {
-        console.error(error)
-      } finally {
-        this.loading = false
-      }
-    },
-    async handleSmsLogin() {
-      try {
-        await this.$refs.smsForm.validate()
-        this.loading = true
-        await this.$store.dispatch('user/login', {
-          username: this.smsForm.phone.trim(),
-          password: this.smsForm.code,
-          authType: 2
-        })
-        this.$message.success('登录成功')
-        this.$router.push('/home')
-      } catch (error) {
-        console.error(error)
-      } finally {
-        this.loading = false
-      }
-    },
-    async handleRegister() {
-      try {
-        await this.$refs.registerForm.validate()
-        this.loading = true
-        await this.$store.dispatch('user/login', {
-          username: this.registerForm.username.trim(),
-          password: this.registerForm.password,
-          authType: 1
-        })
-        this.$message.success('注册成功，请登录')
-        this.activeTab = 'password'
-        this.passwordForm.username = this.registerForm.username
-      } catch (error) {
-        console.error(error)
-      } finally {
-        this.loading = false
-      }
-    },
     handleSendCode() {
-      if (this.countdown > 0) return
-      
-      const phone = this.passwordForm.username || this.smsForm.phone || this.registerForm.username
-      if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
-        this.$message.warning('请输入正确的手机号')
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (!emailRegex.test(this.loginForm.email)) {
+        this.$message.warning('请先输入正确的邮箱地址')
         return
       }
-      
-      // 模拟发送验证码
-      this.$message.success('验证码已发送')
-      this.countdown = 60
-      const timer = setInterval(() => {
-        this.countdown--
-        if (this.countdown <= 0) {
-          clearInterval(timer)
-        }
-      }, 1000)
+
+      this.sendingCode = true
+      sendRegisterEmail({ email: this.loginForm.email })
+        .then(response => {
+          this.sendingCode = false
+          this.loginForm.emailUuid = response.data.emailUuid
+          this.$message.success('验证码已发送')
+          this.countdown = 60
+          this.timer = setInterval(() => {
+            if (this.countdown > 0) {
+              this.countdown--
+            } else {
+              clearInterval(this.timer)
+            }
+          }, 1000)
+        })
+        .catch(error => {
+          this.sendingCode = false
+          this.$message.error('发送验证码失败，请重试')
+          console.error('发送验证码失败:', error)
+        })
+    },
+    handleLogin() {
+      this.$refs.loginForm.validate(valid => {
+        if (!valid) return
+
+        this.loading = true
+        this.$store.dispatch('user/login', {
+          email: this.loginForm.email.trim(),
+          emailCode: this.loginForm.emailCode,
+          authType: this.loginForm.authType,
+          emailUuid: this.loginForm.emailUuid
+        })
+          .then(() => {
+            this.loading = false
+            this.$message.success('登录成功')
+            this.$router.push({ path: this.redirect || '/home' })
+          })
+          .catch(error => {
+            this.loading = false
+            console.error('登录失败:', error)
+          })
+      })
+    },
+    handleSocialLogin(type) {
+      this.$message.info(`${type} 登录开发中`)
+    },
+    showAgreement(type) {
+      this.$message.info(`查看${type === 'user' ? '用户协议' : '隐私政策'}`)
     }
   }
 }
@@ -368,7 +239,6 @@ export default {
 <style lang="scss" scoped>
 .login-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -387,7 +257,7 @@ export default {
 
 .login-left {
   flex: 1;
-  background: linear-gradient(135deg, #1890ff 0%, #00b4b8 100%);
+  background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
   padding: 60px 40px;
   display: flex;
   align-items: center;
@@ -477,60 +347,36 @@ export default {
   }
 }
 
-.login-tabs {
-  margin-bottom: 24px;
-  
-  ::v-deep .el-tabs__item {
-    font-size: 16px;
-  }
-  
-  ::v-deep .el-tabs__active-bar {
-    background: #1890ff;
-  }
-}
-
 .login-form {
   .el-form-item {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
   
-  .form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .code-input {
+  .code-input-wrapper {
     display: flex;
     gap: 12px;
+    width: 100%;
     
-    .el-input {
+    .code-input {
       flex: 1;
     }
     
     .send-code-btn {
       width: 120px;
-    }
-  }
-  
-  .security-tip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px;
-    background: #f6ffed;
-    border: 1px solid #b7eb8f;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    
-    .tip-icon {
-      font-size: 18px;
-    }
-    
-    .tip-text {
-      font-size: 13px;
-      color: #52c41a;
+      border: 1px solid #dcdfe6;
+      color: #ff6b00;
+      padding: 0 16px;
+      
+      &:hover:not(.is-disabled) {
+        border-color: #ff6b00;
+        background: #fff9f5;
+      }
+      
+      &.is-disabled {
+        color: #c0c4cc;
+        border-color: #ebeef5;
+        cursor: not-allowed;
+      }
     }
   }
   
@@ -539,8 +385,14 @@ export default {
     height: 44px;
     font-size: 16px;
     font-weight: 500;
-    background: linear-gradient(135deg, #1890ff 0%, #00b4b8 100%);
+    background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
     border: none;
+    margin-top: 8px;
+    
+    &:hover {
+      background: linear-gradient(135deg, #ff8533 0%, #ff9d55 100%);
+      box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+    }
   }
 }
 
@@ -608,6 +460,23 @@ export default {
           transform: scale(1.1);
         }
       }
+    }
+  }
+}
+
+.footer-agreement {
+  margin-top: 24px;
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  
+  a {
+    color: #ff6b00;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+      color: #ff8533;
     }
   }
 }

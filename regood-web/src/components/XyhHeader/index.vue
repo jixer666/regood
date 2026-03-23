@@ -39,73 +39,82 @@
       </div>
 
       <div class="header-right">
-        <div class="publish-btn" @click="handlePublish">
+        <div class="publish-btn" @click="handlePublish" v-if="isLoggedIn">
           <i class="el-icon-plus"></i>
           <span>发布闲置</span>
         </div>
 
         <div class="nav-actions">
-          <div class="action-item" @click="goToMessage">
-            <el-badge
-              :value="unreadCount"
-              :hidden="unreadCount === 0"
-              :max="99"
-            >
-              <i class="el-icon-chat-dot-round"></i>
-            </el-badge>
-            <span class="action-label">消息</span>
-          </div>
+          <template v-if="isLoggedIn">
+            <div class="action-item" @click="goToMessage">
+              <el-badge
+                :value="unreadCount"
+                :hidden="unreadCount === 0"
+                :max="99"
+              >
+                <i class="el-icon-chat-dot-round"></i>
+              </el-badge>
+              <span class="action-label">消息</span>
+            </div>
 
-          <div class="action-item" @click="goToCart">
-            <el-badge :value="cartCount" :hidden="cartCount === 0" :max="99">
-              <i class="el-icon-shopping-cart-2"></i>
-            </el-badge>
-            <span class="action-label">购物车</span>
-          </div>
+            <div class="action-item" @click="goToCart">
+              <el-badge :value="cartCount" :hidden="cartCount === 0" :max="99">
+                <i class="el-icon-shopping-cart-2"></i>
+              </el-badge>
+              <span class="action-label">购物车</span>
+            </div>
 
-          <div class="action-item" @click="goToFavorite">
-            <i class="el-icon-star-off"></i>
-            <span class="action-label">收藏</span>
-          </div>
+            <div class="action-item" @click="goToFavorite">
+              <i class="el-icon-star-off"></i>
+              <span class="action-label">收藏</span>
+            </div>
+          </template>
         </div>
 
-        <el-dropdown
-          trigger="click"
-          class="user-dropdown"
-          @command="handleCommand"
-        >
-          <div class="user-info">
-            <el-avatar :src="userAvatar" :size="38" class="user-avatar" />
-            <span class="user-name">{{ userName || "用户" }}</span>
-            <i class="el-icon-arrow-down"></i>
-          </div>
-          <el-dropdown-menu slot="dropdown" class="user-menu">
-            <el-dropdown-item command="profile">
-              <i class="el-icon-user"></i>
-              <span>个人中心</span>
-            </el-dropdown-item>
-            <el-dropdown-item command="publish">
-              <i class="el-icon-s-goods"></i>
-              <span>我的发布</span>
-            </el-dropdown-item>
-            <el-dropdown-item command="sold">
-              <i class="el-icon-s-order"></i>
-              <span>已卖出</span>
-            </el-dropdown-item>
-            <el-dropdown-item command="bought">
-              <i class="el-icon-s-claim"></i>
-              <span>已买到</span>
-            </el-dropdown-item>
-            <el-dropdown-item command="favorite">
-              <i class="el-icon-star-off"></i>
-              <span>我的收藏</span>
-            </el-dropdown-item>
-            <el-dropdown-item command="logout" class="logout-item">
-              <i class="el-icon-switch-button"></i>
-              <span>退出登录</span>
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
+        <template v-if="isLoggedIn">
+          <el-dropdown
+            trigger="click"
+            class="user-dropdown"
+            @command="handleCommand"
+          >
+            <div class="user-info">
+              <el-avatar :src="userAvatar" :size="38" class="user-avatar" />
+              <span class="user-name">{{ userName || "用户" }}</span>
+              <i class="el-icon-arrow-down"></i>
+            </div>
+            <el-dropdown-menu slot="dropdown" class="user-menu">
+              <el-dropdown-item command="profile">
+                <i class="el-icon-user"></i>
+                <span>个人中心</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="publish">
+                <i class="el-icon-s-goods"></i>
+                <span>我的发布</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="sold">
+                <i class="el-icon-s-order"></i>
+                <span>已卖出</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="bought">
+                <i class="el-icon-s-claim"></i>
+                <span>已买到</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="favorite">
+                <i class="el-icon-star-off"></i>
+                <span>我的收藏</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="logout" class="logout-item">
+                <i class="el-icon-switch-button"></i>
+                <span>退出登录</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </template>
+        <template v-else>
+          <el-button type="primary" class="login-btn" @click="goToLogin">
+            登录/注册
+          </el-button>
+        </template>
       </div>
     </div>
   </div>
@@ -125,7 +134,10 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["avatar", "name", "userId"]),
+    ...mapGetters(["avatar", "name", "userId", "token"]),
+    isLoggedIn() {
+      return !!this.token;
+    },
     userAvatar() {
       return (
         this.avatar ||
@@ -152,6 +164,10 @@ export default {
       }
     },
     handlePublish() {
+      if (!this.isLoggedIn) {
+        this.$router.push(`/login?redirect=${this.$route.fullPath}`);
+        return;
+      }
       this.$router.push("/publish");
     },
     goToMessage() {
@@ -179,6 +195,9 @@ export default {
     },
     async handleLogout() {
       await this.$store.dispatch("user/logout");
+      this.$router.push(`/login?redirect=${this.$route.fullPath}`);
+    },
+    goToLogin() {
       this.$router.push(`/login?redirect=${this.$route.fullPath}`);
     },
   },
@@ -437,6 +456,19 @@ export default {
 
     &.is-opened .user-info .el-icon-arrow-down {
       transform: rotate(180deg);
+    }
+  }
+
+  .login-btn {
+    background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 24px;
+    font-weight: 500;
+
+    &:hover {
+      background: linear-gradient(135deg, #ff8533 0%, #ff9d55 100%);
+      box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
     }
   }
 }

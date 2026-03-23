@@ -8,6 +8,14 @@ export function login(data) {
   })
 }
 
+export function sendRegisterEmail(data) {
+  return request({
+    url: '/system/sendRegisterEmail',
+    method: 'post',
+    data
+  })
+}
+
 export function getInfo() {
   return request({
     url: '/system/user/info',
