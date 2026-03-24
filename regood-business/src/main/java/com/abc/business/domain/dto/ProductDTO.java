@@ -43,4 +43,8 @@ public class ProductDTO {
     private String sortType;
 
     private Long categoryIdForQuery;
+
+    private Integer auditStatus;
+
+    private String rejectReason;
 }

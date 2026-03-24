@@ -57,4 +57,8 @@ public class Product extends BaseEntity {
 
     @TableField(exist = false)
     private String categoryName;
+
+    private Integer auditStatus;
+
+    private String rejectReason;
 }

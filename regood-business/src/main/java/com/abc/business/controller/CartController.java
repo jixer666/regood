@@ -21,11 +21,18 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    @ApiOperation("获取购物车列表")
+    @ApiOperation("获取购物车列表（当前用户）")
     @GetMapping("/list")
     public ApiResult<PageResult> getCartList() {
         Long userId = SecurityUtils.getUserId();
         PageResult pageResult = cartService.getCartPage(userId);
+        return ApiResult.success(pageResult);
+    }
+
+    @ApiOperation("获取所有购物车列表（管理员）")
+    @GetMapping("/all")
+    public ApiResult<PageResult> getAllCartList() {
+        PageResult pageResult = cartService.getAllCartPage();
         return ApiResult.success(pageResult);
     }
 
@@ -43,5 +50,12 @@ public class CartController {
         Long userId = SecurityUtils.getUserId();
         cartService.removeFromCart(cartId, userId);
         return ApiResult.success("移除成功");
+    }
+
+    @ApiOperation("批量移除购物车")
+    @DeleteMapping("/batch")
+    public ApiResult<String> batchRemoveFromCart(@RequestBody List<Long> cartIds) {
+        cartService.batchRemoveFromCart(cartIds);
+        return ApiResult.success("批量移除成功");
     }
 }

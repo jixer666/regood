@@ -177,15 +177,8 @@
                 </div>
               </el-form-item>
 
-              <el-form-item label="面交地点" v-if="form.tradeMethods.includes('face')">
-                <el-select v-model="form.meetingPlace" placeholder="请选择面交地点" class="full-width">
-                  <el-option
-                    v-for="item in meetingPlaces"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
+              <el-form-item label="面交地点" v-if="form.tradeMethods.length > 0">
+                <el-input v-model="form.meetingPlace" placeholder="请输入面交地点" class="full-width" />
               </el-form-item>
             </el-form>
           </div>
@@ -270,10 +263,10 @@ export default {
         title: '',
         description: '',
         category: [],
-        condition: '9成新',
+        condition: '',
         originalPrice: 0,
         price: 0,
-        tradeMethods: ['face'],
+        tradeMethods: [],
         meetingPlace: '',
         freeShipping: true,
         shippingFee: 0
@@ -427,8 +420,6 @@ export default {
           return
         }
 
-        this.$message.info(this.isEdit ? '正在更新...' : '正在发布...')
-
         const categoryId = Array.isArray(this.form.category)
           ? this.form.category[this.form.category.length - 1]
           : this.form.category
@@ -467,7 +458,6 @@ export default {
         this.$router.push('/profile?tab=publish')
       } catch (error) {
         console.error(this.isEdit ? '更新失败' : '发布失败', error)
-        this.$message.error(this.isEdit ? '更新失败，请重试' : '发布失败，请重试')
       }
     }
   }

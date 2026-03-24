@@ -32,6 +32,7 @@ public class ProductConvert {
         vo.setOriginalPrice(product.getOriginalPrice());
         vo.setCondition(product.getProductCondition());
         vo.setCategoryId(product.getCategoryId());
+        vo.setCategoryName(product.getCategoryName());
         vo.setSellerId(product.getSellerId());
         vo.setStatus(product.getStatus());
         vo.setViewCount(product.getViewCount());
@@ -45,6 +46,8 @@ public class ProductConvert {
         vo.setSellerName(product.getSellerName());
         vo.setSellerId(product.getSellerId());
         vo.setSellerAvatar(product.getSellerAvatar());
+        vo.setAuditStatus(product.getAuditStatus());
+        vo.setRejectReason(product.getRejectReason());
 
         if (product.getImages() != null) {
             vo.setImages(JSONUtil.toList(product.getImages(), String.class));

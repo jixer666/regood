@@ -56,7 +56,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, User> implement
         AssertUtils.isNotEmpty(userId, "用户ID不能为空");
         User user = getUserById(userId);
         List<String> roleKeys = roleService.getRoleKeysByUserId(userId);
-
         return UserConvert.convertToUserVO(user, roleKeys);
     }
 

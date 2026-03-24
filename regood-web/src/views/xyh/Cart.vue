@@ -5,7 +5,6 @@
     <div class="cart-content">
       <div class="page-header">
         <h1 class="page-title">购物车</h1>
-        <span class="edit-btn" @click="toggleEdit">{{ isEditing ? '完成' : '管理' }}</span>
       </div>
 
       <div class="cart-list" v-if="cartItems.length > 0">
@@ -51,7 +50,7 @@
             </div>
           </div>
 
-          <div class="item-delete" v-if="isEditing" @click="removeItem(item.id)">
+          <div class="item-delete" @click="removeItem(item.id)">
             <i class="el-icon-delete"></i>
           </div>
         </div>

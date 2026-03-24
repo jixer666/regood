@@ -54,6 +54,13 @@ export function offlineProduct(productId) {
   })
 }
 
+export function onlineProduct(productId) {
+  return request({
+    url: `/business/product/online/${productId}`,
+    method: 'put'
+  })
+}
+
 export function getRecommendProducts() {
   return request({
     url: '/business/product/recommend',
@@ -72,5 +79,28 @@ export function removeFavorite(productId) {
   return request({
     url: `/business/product/favorite/${productId}`,
     method: 'delete'
+  })
+}
+
+export function getPendingAuditList(query) {
+  return request({
+    url: '/business/product/pending/audit',
+    method: 'get',
+    params: query
+  })
+}
+
+export function approveProduct(productId) {
+  return request({
+    url: `/business/product/approve/${productId}`,
+    method: 'put'
+  })
+}
+
+export function rejectProduct(productId, data) {
+  return request({
+    url: `/business/product/reject/${productId}`,
+    method: 'put',
+    data
   })
 }

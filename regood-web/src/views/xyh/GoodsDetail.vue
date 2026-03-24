@@ -303,7 +303,6 @@ export default {
         this.$router.push('/cart')
       } catch (error) {
         console.error('加入购物车失败', error)
-        this.$message.error('加入购物车失败')
       }
     },
     goToDetail(id) {

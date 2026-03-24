@@ -75,8 +75,15 @@ public class ProductController {
     @ApiOperation("下架商品")
     @PutMapping("/offline/{productId}")
     public ApiResult<String> offlineProduct(@PathVariable Long productId) {
-        productService.updateProductStatus(productId, 3);
+        productService.updateProductStatus(productId, 0);
         return ApiResult.success("下架成功");
+    }
+
+    @ApiOperation("上架商品")
+    @PutMapping("/online/{productId}")
+    public ApiResult<String> onlineProduct(@PathVariable Long productId) {
+        productService.updateProductStatus(productId, 1);
+        return ApiResult.success("上架成功");
     }
 
     @ApiOperation("获取推荐商品")
@@ -101,5 +108,26 @@ public class ProductController {
         Long userId = SecurityUtils.getUserId();
         productService.removeFavorite(productId, userId);
         return ApiResult.success("取消收藏成功");
+    }
+
+    @ApiOperation("获取待审核商品列表")
+    @GetMapping("/pending/audit")
+    public ApiResult<PageResult> getPendingAuditList(ProductDTO productDTO) {
+        PageResult pageResult = productService.getPendingAuditList(productDTO);
+        return ApiResult.success(pageResult);
+    }
+
+    @ApiOperation("审核通过商品")
+    @PutMapping("/approve/{productId}")
+    public ApiResult<String> approveProduct(@PathVariable Long productId) {
+        productService.approveProduct(productId, null);
+        return ApiResult.success("审核通过");
+    }
+
+    @ApiOperation("审核拒绝商品")
+    @PutMapping("/reject/{productId}")
+    public ApiResult<String> rejectProduct(@PathVariable Long productId, @RequestBody ProductDTO productDTO) {
+        productService.rejectProduct(productId, productDTO.getRejectReason());
+        return ApiResult.success("审核拒绝");
     }
 }

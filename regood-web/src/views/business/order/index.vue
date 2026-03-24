@@ -3,15 +3,15 @@
     <div>
       <el-form :inline="true" :model="searchForm" class="demo-form-inline">
         <el-form-item label="订单编号">
-          <el-input v-model="searchForm.orderNo" placeholder="请输入订单编号"></el-input>
+          <el-input v-model="searchForm.orderNo" placeholder="请输入订单编号" clearable></el-input>
         </el-form-item>
         <el-form-item label="订单状态">
           <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="待支付" :value="1"></el-option>
-            <el-option label="已支付" :value="2"></el-option>
-            <el-option label="已发货" :value="3"></el-option>
-            <el-option label="已完成" :value="4"></el-option>
-            <el-option label="已取消" :value="5"></el-option>
+            <el-option label="待支付" :value="0"></el-option>
+            <el-option label="已支付" :value="1"></el-option>
+            <el-option label="已发货" :value="2"></el-option>
+            <el-option label="已完成" :value="3"></el-option>
+            <el-option label="已取消" :value="4"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -22,26 +22,22 @@
     </div>
     <div>
       <el-table v-loading="loading" :data="tableList">
-        <el-table-column label="订单编号" align="center" key="orderNo" prop="orderNo" :show-overflow-tooltip="true" width="180" />
-        <el-table-column label="商品信息" align="center" key="productName" width="200">
+        <el-table-column label="订单编号" align="center" prop="orderNo" :show-overflow-tooltip="true" width="180" />
+        <el-table-column label="商品信息" align="center">
           <template slot-scope="scope">
-            <div>{{ scope.row.productName }}</div>
-            <div class="text-muted">x{{ scope.row.productCount }}</div>
+            <el-avatar v-if="scope.row.productImages && scope.row.productImages.length > 0" size="small" :src="scope.row.productImages[0]" style="margin-right: 8px;"></el-avatar>
+            <span>{{ scope.row.productTitle }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="买家" align="center" key="buyerNickname" prop="buyerNickname" width="120" />
-        <el-table-column label="卖家" align="center" key="sellerNickname" prop="sellerNickname" width="120" />
-        <el-table-column label="订单金额" align="center" key="totalPrice" width="100">
+        <el-table-column label="价格" align="center" width="100">
           <template slot-scope="scope">
-            ¥{{ scope.row.totalPrice }}
+            ¥{{ scope.row.price }}
           </template>
         </el-table-column>
-        <el-table-column label="实付金额" align="center" key="payPrice" width="100">
-          <template slot-scope="scope">
-            ¥{{ scope.row.payPrice }}
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" align="center" key="status" width="100">
+        <el-table-column label="买家" align="center" prop="buyerName" width="100" />
+        <el-table-column label="卖家" align="center" prop="sellerName" width="100" />
+        <el-table-column label="交易方式" align="center" prop="tradeMethod" width="100" />
+        <el-table-column label="状态" align="center" width="100">
           <template slot-scope="scope">
             <el-tag :type="getStatusType(scope.row.status)" size="small">
               {{ getStatusText(scope.row.status) }}
@@ -67,7 +63,7 @@
 </template>
 
 <script>
-import { getOrderPage } from '@/api/business/order'
+import { getAllOrderPage } from '@/api/business/order'
 
 export default {
   name: 'Order',
@@ -90,7 +86,7 @@ export default {
   methods: {
     getList() {
       this.loading = true
-      getOrderPage(this.searchForm).then(response => {
+      getAllOrderPage(this.searchForm).then(response => {
         this.tableList = response.data.list || []
         this.searchForm.total = response.data.total || 0
         this.loading = false
@@ -99,32 +95,28 @@ export default {
       })
     },
     resetSearch() {
-      this.searchForm = {
-        orderNo: '',
-        status: null,
-        pageNum: 1,
-        pageSize: 10,
-        total: 0
-      }
+      this.searchForm.orderNo = ''
+      this.searchForm.status = null
+      this.searchForm.pageNum = 1
       this.getList()
     },
     getStatusText(status) {
       const statusMap = {
-        1: '待支付',
-        2: '已支付',
-        3: '已发货',
-        4: '已完成',
-        5: '已取消'
+        0: '待支付',
+        1: '已支付',
+        2: '已发货',
+        3: '已完成',
+        4: '已取消'
       }
       return statusMap[status] || '未知'
     },
     getStatusType(status) {
       const typeMap = {
-        1: 'warning',
-        2: 'primary',
-        3: 'info',
-        4: 'success',
-        5: 'danger'
+        0: 'warning',
+        1: 'primary',
+        2: 'info',
+        3: 'success',
+        4: 'danger'
       }
       return typeMap[status] || 'info'
     },
@@ -138,9 +130,5 @@ export default {
 <style scoped>
 .order-container {
   padding: 20px;
-}
-.text-muted {
-  color: #999;
-  font-size: 12px;
 }
 </style>

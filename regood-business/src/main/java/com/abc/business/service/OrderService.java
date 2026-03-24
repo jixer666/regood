@@ -12,6 +12,8 @@ public interface OrderService extends IService<Order> {
 
     PageResult getOrderPage(OrderDTO orderDTO, Long userId);
 
+    PageResult getAllOrderPage(OrderDTO orderDTO);
+
     OrderVO getOrderDetail(Long orderId, Long userId);
 
     void createOrder(OrderDTO orderDTO, Long userId);

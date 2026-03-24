@@ -43,6 +43,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderMapper, Order> implem
     }
 
     @Override
+    public PageResult getAllOrderPage(OrderDTO orderDTO) {
+        List<OrderVO> voList = orderMapper.selectAllOrderList(orderDTO);
+        return PageResult.builder().list(voList).total((long) voList.size()).build();
+    }
+
+    @Override
     public OrderVO getOrderDetail(Long orderId, Long userId) {
         AssertUtils.isNotEmpty(orderId, "订单ID不能为空");
 
@@ -117,16 +123,16 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderMapper, Order> implem
     public List<OrderVO> getMySoldList(Long userId) {
         OrderDTO dto = new OrderDTO();
         dto.setSellerId(userId);
-        List<Order> orders = orderMapper.selectOrderList(dto);
-        return convertToOrderVOList(orders);
+        List<OrderVO> list = orderMapper.selectAllOrderList(dto);
+        return list;
     }
 
     @Override
     public List<OrderVO> getMyBoughtList(Long userId) {
         OrderDTO dto = new OrderDTO();
         dto.setBuyerId(userId);
-        List<Order> orders = orderMapper.selectOrderList(dto);
-        return convertToOrderVOList(orders);
+        List<OrderVO> list = orderMapper.selectAllOrderList(dto);
+        return list;
     }
 
     private String generateOrderNo() {

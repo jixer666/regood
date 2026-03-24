@@ -70,7 +70,8 @@ public class ProductServiceImpl extends BaseServiceImpl<ProductMapper, Product> 
         Product product = ProductConvert.convertToProduct(productDTO);
         product.setProductId(IdUtils.getId());
         product.setSellerId(userId);
-        product.setStatus(1);
+        product.setStatus(0);
+        product.setAuditStatus(0);
         product.setViewCount(0);
         product.setWantCount(0);
         product.setImages(JSONUtil.toJsonStr(productDTO.getImages()));
@@ -131,7 +132,7 @@ public class ProductServiceImpl extends BaseServiceImpl<ProductMapper, Product> 
         Product product = productMapper.selectById(productId);
         AssertUtils.isNotEmpty(product, "商品不存在");
 
-        AssertUtils.isTrue(product.getSellerId().equals(SecurityUtils.getUserId()), "无权限修改状态");
+        AssertUtils.isTrue(product.getSellerId().equals(SecurityUtils.getUserId()) || SecurityUtils.getLoginUser().getUsername().equals("admin"), "无权限修改状态");
 
         product.setStatus(status);
         productMapper.updateById(product);
@@ -199,5 +200,40 @@ public class ProductServiceImpl extends BaseServiceImpl<ProductMapper, Product> 
             voList.add(ProductConvert.convertToProductVO(product));
         }
         return voList;
+    }
+
+    @Override
+    public PageResult getPendingAuditList(ProductDTO productDTO) {
+        if (productDTO == null) {
+            productDTO = new ProductDTO();
+        }
+        productDTO.setAuditStatus(0);
+        startPage();
+        List<Product> products = productMapper.selectProductPage(productDTO);
+        List<ProductVO> voList = convertToProductVOList(products);
+        return buildPageResult(voList);
+    }
+
+    @Override
+    public void approveProduct(Long productId, String rejectReason) {
+        Product product = productMapper.selectById(productId);
+        AssertUtils.isNotEmpty(product, "商品不存在");
+        AssertUtils.isTrue(product.getAuditStatus() == 0, "商品不是待审核状态");
+        
+        product.setAuditStatus(1);
+        product.setStatus(1);
+        product.setRejectReason(null);
+        productMapper.updateById(product);
+    }
+
+    @Override
+    public void rejectProduct(Long productId, String rejectReason) {
+        Product product = productMapper.selectById(productId);
+        AssertUtils.isNotEmpty(product, "商品不存在");
+        AssertUtils.isTrue(product.getAuditStatus() == 0, "商品不是待审核状态");
+        
+        product.setAuditStatus(2);
+        product.setRejectReason(rejectReason);
+        productMapper.updateById(product);
     }
 }

@@ -22,6 +22,14 @@ public class UserVO {
 
     private List<String> roles;
 
+    private String email;
+
+    private String phone;
+
+    private String signature;
+
+    private Integer creditScore;
+
     private Date createTime;
 
     private Date updateTime;

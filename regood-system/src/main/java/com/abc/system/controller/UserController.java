@@ -23,7 +23,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @Permission(value = "system:user:query")
     @ApiOperation("查询用户信息")
     @GetMapping("/info")
     public ApiResult<UserVO> getUserInfo() {

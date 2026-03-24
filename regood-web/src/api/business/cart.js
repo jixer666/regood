@@ -7,6 +7,13 @@ export function getCartList() {
   })
 }
 
+export function getAllCartList() {
+  return request({
+    url: '/business/cart/all',
+    method: 'get'
+  })
+}
+
 export function addToCart(data) {
   return request({
     url: '/business/cart',
@@ -19,5 +26,13 @@ export function removeFromCart(cartId) {
   return request({
     url: `/business/cart/${cartId}`,
     method: 'delete'
+  })
+}
+
+export function batchRemoveCart(ids) {
+  return request({
+    url: '/business/cart/batch',
+    method: 'delete',
+    data: ids
   })
 }

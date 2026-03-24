@@ -27,6 +27,10 @@ public class UserConvert {
         return user;
     }
 
+    public static UserVO convertToUserVO(User user) {
+        return BeanUtil.copyProperties(user, UserVO.class);
+    }
+
     public static UserVO convertToUserVO(User user, List<String> roleKeys) {
         UserVO userVO = BeanUtil.copyProperties(user, UserVO.class);
         userVO.setRoles(roleKeys);

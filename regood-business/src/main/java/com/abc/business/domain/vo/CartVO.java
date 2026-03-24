@@ -1,5 +1,7 @@
 package com.abc.business.domain.vo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +23,7 @@ public class CartVO {
 
     private String title;
 
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private List<String> images;
 
     private BigDecimal price;
@@ -36,4 +39,8 @@ public class CartVO {
     private Boolean freeShipping;
 
     private Date createTime;
+
+    private Long userId;
+
+    private String userName;
 }

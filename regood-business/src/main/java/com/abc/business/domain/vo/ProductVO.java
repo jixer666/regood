@@ -62,4 +62,8 @@ public class ProductVO {
     private Date updateTime;
 
     private Boolean isFavorite;
+
+    private Integer auditStatus;
+
+    private String rejectReason;
 }

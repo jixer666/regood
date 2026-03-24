@@ -29,6 +29,13 @@ public class OrderController {
         return ApiResult.success(pageResult);
     }
 
+    @ApiOperation("查询所有订单分页（管理员）")
+    @GetMapping("/all")
+    public ApiResult<PageResult> getAllOrderPage(OrderDTO orderDTO) {
+        PageResult pageResult = orderService.getAllOrderPage(orderDTO);
+        return ApiResult.success(pageResult);
+    }
+
     @ApiOperation("查询订单详情")
     @GetMapping("/detail")
     public ApiResult<OrderVO> getOrderDetail(@RequestParam Long orderId) {

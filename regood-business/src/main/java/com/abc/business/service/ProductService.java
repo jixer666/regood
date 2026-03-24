@@ -22,6 +22,12 @@ public interface ProductService extends IService<Product> {
 
     void updateProductStatus(Long productId, Integer status);
 
+    PageResult getPendingAuditList(ProductDTO productDTO);
+
+    void approveProduct(Long productId, String rejectReason);
+
+    void rejectProduct(Long productId, String rejectReason);
+
     void addToCart(Long productId, Long userId);
 
     void removeFromCart(Long cartId);

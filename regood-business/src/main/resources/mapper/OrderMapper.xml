@@ -20,7 +20,39 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
+    <resultMap type="com.abc.business.domain.vo.OrderVO" id="OrderVOResult">
+        <result property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="buyerId" column="buyer_id"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="price" column="price"/>
+        <result property="status" column="status"/>
+        <result property="tradeMethod" column="trade_method"/>
+        <result property="address" column="address"/>
+        <result property="meetingPlace" column="meeting_place"/>
+        <result property="payTime" column="pay_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="productTitle" column="product_title"/>
+        <result property="productImages" column="product_images" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="buyerName" column="buyer_name"/>
+        <result property="sellerName" column="seller_name"/>
+    </resultMap>
+
     <sql id="selectOrderVo">
+        select o.order_id, o.order_no, o.buyer_id, o.seller_id, o.product_id, o.price,
+               o.status, o.trade_method, o.address, o.meeting_place, o.pay_time,
+               o.create_time, o.update_time,
+               p.title as product_title, p.images as product_images,
+               buyer.nickname as buyer_name, seller.nickname as seller_name
+        from tb_order o
+        left join tb_product p on o.product_id = p.product_id
+        left join tb_user buyer on o.buyer_id = buyer.user_id
+        left join tb_user seller on o.seller_id = seller.user_id
+    </sql>
+
+    <sql id="selectAllOrderVo">
         select o.order_id, o.order_no, o.buyer_id, o.seller_id, o.product_id, o.price,
                o.status, o.trade_method, o.address, o.meeting_place, o.pay_time,
                o.create_time, o.update_time,
@@ -37,6 +69,15 @@
         <where>
             <if test="buyerId != null">and o.buyer_id = #{buyerId}</if>
             <if test="sellerId != null">and o.seller_id = #{sellerId}</if>
+            <if test="status != null">and o.status = #{status}</if>
+        </where>
+        order by o.create_time desc
+    </select>
+
+    <select id="selectAllOrderList" resultMap="OrderVOResult">
+        <include refid="selectAllOrderVo"/>
+        <where>
+            <if test="orderNo != null and orderNo != ''">and o.order_no like concat('%', #{orderNo}, '%')</if>
             <if test="status != null">and o.status = #{status}</if>
         </where>
         order by o.create_time desc

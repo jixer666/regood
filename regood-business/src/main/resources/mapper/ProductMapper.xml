@@ -13,7 +13,10 @@
         <result property="originalPrice" column="original_price"/>
         <result property="productCondition" column="product_condition"/>
         <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
         <result property="sellerId" column="seller_id"/>
+        <result property="sellerName" column="seller_name"/>
+        <result property="sellerAvatar" column="seller_avatar"/>
         <result property="status" column="status"/>
         <result property="viewCount" column="view_count"/>
         <result property="wantCount" column="want_count"/>
@@ -23,13 +26,15 @@
         <result property="shippingFee" column="shipping_fee"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="rejectReason" column="reject_reason"/>
     </resultMap>
 
     <sql id="selectProductVo">
         select p.product_id, p.title, p.description, p.images, p.price, p.original_price,
                p.product_condition, p.category_id, p.seller_id, p.status, p.view_count, p.want_count,
                p.trade_methods, p.meeting_place, p.free_shipping, p.shipping_fee,
-               p.create_time, p.update_time,
+               p.create_time, p.update_time, p.audit_status, p.reject_reason,
                u.nickname as sellerName, u.avatar as sellerAvatar,
                c.name as category_name
         from tb_product p
@@ -41,11 +46,20 @@
         <include refid="selectProductVo"/>
         <where>
             <if test="status != null">and p.status = #{status}</if>
+            <if test="auditStatus != null">and p.audit_status = #{auditStatus}</if>
+            <if test="auditStatus == null">
+                and (p.audit_status = 1 or p.audit_status is null)
+            </if>
             <if test="categoryIdForQuery != null">and p.category_id = #{categoryIdForQuery}</if>
             <if test="sellerId != null">and p.seller_id = #{sellerId}</if>
             <if test="title != null and title != ''">and p.title like concat('%', #{title}, '%')</if>
         </where>
-        order by p.create_time desc
+        <choose>
+            <when test="sortType == 'price_asc'">order by p.price asc</when>
+            <when test="sortType == 'price_desc'">order by p.price desc</when>
+            <when test="sortType == 'newest'">order by p.create_time desc</when>
+            <otherwise>order by p.create_time desc</otherwise>
+        </choose>
     </select>
 
     <select id="selectProductList" resultMap="ProductResult">

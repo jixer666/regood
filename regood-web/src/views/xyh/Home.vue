@@ -7,9 +7,9 @@
         <div class="tabs-wrapper">
           <div
             v-for="category in categories"
-            :key="category.id"
-            :class="['tab-item', { active: activeCategory === category.id }]"
-            @click="handleCategorySelect(category.id)"
+            :key="category.categoryId"
+            :class="['tab-item', { active: activeCategory === category.categoryId }]"
+            @click="handleCategorySelect(category.categoryId)"
           >
             <span class="tab-icon">{{ category.icon }}</span>
             <span class="tab-name">{{ category.name }}</span>
@@ -205,7 +205,7 @@ export default {
       try {
         const query = {
           pageNum: this.currentPage,
-          pageSize: this.pageSize
+          pageSize: this.pageSize,
         }
         if (this.activeCategory !== 'all') {
           query.categoryIdForQuery = this.activeCategory

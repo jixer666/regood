@@ -12,9 +12,13 @@ public interface CartService extends IService<Cart> {
 
     PageResult getCartPage(Long userId);
 
+    PageResult getAllCartPage();
+
     void addToCart(CartDTO cartDTO, Long userId);
 
     void removeFromCart(Long cartId, Long userId);
+
+    void batchRemoveFromCart(List<Long> cartIds);
 
     List<CartVO> getCartList(Long userId);
 }

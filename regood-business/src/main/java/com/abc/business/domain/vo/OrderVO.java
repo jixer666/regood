@@ -1,5 +1,7 @@
 package com.abc.business.domain.vo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +25,7 @@ public class OrderVO {
 
     private String productTitle;
 
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private List<String> productImages;
 
     private BigDecimal price;

@@ -8,6 +8,14 @@ export function getOrderPage(query) {
   })
 }
 
+export function getAllOrderPage(query) {
+  return request({
+    url: '/business/order/all',
+    method: 'get',
+    params: query
+  })
+}
+
 export function getOrderDetail(orderId) {
   return request({
     url: '/business/order/detail',

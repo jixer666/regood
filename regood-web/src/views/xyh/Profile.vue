@@ -154,40 +154,25 @@
           <!-- 我卖出的 -->
           <div v-if="activeMenu === 'my-sold'" class="profile-content">
             <div class="section-title">我卖出的</div>
-            <div class="order-list">
+            <div class="goods-list">
               <div
                 v-for="order in soldList"
                 :key="order.id"
-                class="order-item"
+                class="goods-item"
               >
-                <div class="order-header">
-                  <el-image
-                    :src="order.image"
-                    class="order-image"
-                    fit="cover"
-                  />
-                  <div class="order-info">
-                    <div class="order-title">{{ order.title }}</div>
-                    <div class="order-meta">
-                      <span class="price">¥{{ order.price }}</span>
-                      <span class="quantity">x{{ order.quantity }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="order-body">
-                  <div class="order-status">
-                    <span class="status-label">交易状态：</span>
+                <el-image
+                  :src="order.image"
+                  class="goods-image"
+                  fit="cover"
+                />
+                <div class="goods-info">
+                  <div class="goods-title">{{ order.title }}</div>
+                  <div class="goods-meta">
+                    <span class="price">¥{{ order.price }}</span>
                     <el-tag :type="order.statusType" size="small">{{ order.statusText }}</el-tag>
                   </div>
-                  <div class="order-meta-info">
-                    <div class="meta-item">
-                      <span class="meta-label">买家：</span>
-                      <span class="meta-value">{{ order.buyer }}</span>
-                    </div>
-                    <div class="meta-item">
-                      <span class="meta-label">成交时间：</span>
-                      <span class="meta-value">{{ order.time }}</span>
-                    </div>
+                  <div class="goods-meta">
+                    <span class="meta-label">买家：{{ order.buyer }}</span>
                   </div>
                 </div>
               </div>
@@ -197,42 +182,27 @@
           <!-- 我买到的 -->
           <div v-if="activeMenu === 'my-bought'" class="profile-content">
             <div class="section-title">我买到的</div>
-            <div class="order-list">
+            <div class="goods-list">
               <div
                 v-for="order in boughtList"
                 :key="order.id"
-                class="order-item"
+                class="goods-item"
               >
-                <div class="order-header">
-                  <el-image
-                    :src="order.image"
-                    class="order-image"
-                    fit="cover"
-                  />
-                  <div class="order-info">
-                    <div class="order-title">{{ order.title }}</div>
-                    <div class="order-meta">
-                      <span class="price">¥{{ order.price }}</span>
-                      <span class="quantity">x{{ order.quantity }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="order-body">
-                  <div class="order-status">
-                    <span class="status-label">交易状态：</span>
+                <el-image
+                  :src="order.image"
+                  class="goods-image"
+                  fit="cover"
+                />
+                <div class="goods-info">
+                  <div class="goods-title">{{ order.title }}</div>
+                  <div class="goods-meta">
+                    <span class="price">¥{{ order.price }}</span>
                     <el-tag :type="order.statusType" size="small">{{ order.statusText }}</el-tag>
                   </div>
-                  <div class="order-meta-info">
-                    <div class="meta-item">
-                      <span class="meta-label">卖家：</span>
-                      <span class="meta-value">{{ order.seller }}</span>
-                    </div>
-                    <div class="meta-item">
-                      <span class="meta-label">成交时间：</span>
-                      <span class="meta-value">{{ order.time }}</span>
-                    </div>
+                  <div class="goods-meta">
+                    <span class="meta-label">卖家：{{ order.seller }}</span>
                   </div>
-                  <div class="order-actions">
+                  <div class="goods-actions">
                     <el-button
                       v-if="order.canComment"
                       type="primary"
@@ -253,6 +223,7 @@
                 </div>
               </div>
             </div>
+
           </div>
 
           <!-- 我的收藏 -->
@@ -438,9 +409,9 @@ export default {
           const data = res.data
           this.profileForm = {
             userId: data.userId,
-            username: data.userName,
-            nickname: data.nickName || data.userName,
-            email: data.email || '',
+            username: data.username,
+            nickname: data.nickname || data.username,
+            email: data.email || '',  
             phone: data.phone || '',
             signature: data.signature || '',
             creditScore: data.creditScore || 100,
@@ -488,7 +459,7 @@ export default {
           this.soldList = list.map(item => ({
             id: item.orderId,
             title: item.productTitle,
-            image: item.productImage,
+            image: (item.productImages && item.productImages.length > 0) ? item.productImages[0] : '',
             price: item.totalAmount,
             quantity: item.quantity || 1,
             statusType: ORDER_STATUS_MAP[item.status]?.type || 'info',
@@ -511,12 +482,12 @@ export default {
           this.boughtList = list.map(item => ({
             id: item.orderId,
             title: item.productTitle,
-            image: item.productImage,
+            image: (item.productImages && item.productImages.length > 0) ? item.productImages[0] : '',
             price: item.totalAmount,
             quantity: item.quantity || 1,
             statusType: ORDER_STATUS_MAP[item.status]?.type || 'info',
             statusText: ORDER_STATUS_MAP[item.status]?.text || '未知',
-            seller: item.sellerName || '卖家',
+            seller: item.sellerName ,
             time: item.createTime,
             canComment: item.status === 3,
             canReview: item.status === 3

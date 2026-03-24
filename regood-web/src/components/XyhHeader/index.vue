@@ -47,20 +47,12 @@
         <div class="nav-actions">
           <template v-if="isLoggedIn">
             <div class="action-item" @click="goToMessage">
-              <el-badge
-                :value="unreadCount"
-                :hidden="unreadCount === 0"
-                :max="99"
-              >
-                <i class="el-icon-chat-dot-round"></i>
-              </el-badge>
+              <i class="el-icon-chat-dot-round"></i>
               <span class="action-label">消息</span>
             </div>
 
             <div class="action-item" @click="goToCart">
-              <el-badge :value="cartCount" :hidden="cartCount === 0" :max="99">
-                <i class="el-icon-shopping-cart-2"></i>
-              </el-badge>
+              <i class="el-icon-shopping-cart-2"></i>
               <span class="action-label">购物车</span>
             </div>
 
@@ -86,22 +78,6 @@
               <el-dropdown-item command="profile">
                 <i class="el-icon-user"></i>
                 <span>个人中心</span>
-              </el-dropdown-item>
-              <el-dropdown-item command="publish">
-                <i class="el-icon-s-goods"></i>
-                <span>我的发布</span>
-              </el-dropdown-item>
-              <el-dropdown-item command="sold">
-                <i class="el-icon-s-order"></i>
-                <span>已卖出</span>
-              </el-dropdown-item>
-              <el-dropdown-item command="bought">
-                <i class="el-icon-s-claim"></i>
-                <span>已买到</span>
-              </el-dropdown-item>
-              <el-dropdown-item command="favorite">
-                <i class="el-icon-star-off"></i>
-                <span>我的收藏</span>
               </el-dropdown-item>
               <el-dropdown-item command="logout" class="logout-item">
                 <i class="el-icon-switch-button"></i>

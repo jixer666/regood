@@ -19,6 +19,22 @@
         <result property="sellerAvatar" column="seller_avatar"/>
     </resultMap>
 
+    <resultMap type="com.abc.business.domain.vo.CartVO" id="CartVOResult">
+        <result property="cartId" column="cart_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="title" column="title"/>
+        <result property="images" column="images" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="price" column="price"/>
+        <result property="condition" column="product_condition"/>
+        <result property="freeShipping" column="free_shipping"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="sellerName" column="seller_name"/>
+        <result property="sellerAvatar" column="seller_avatar"/>
+        <result property="userName" column="user_name"/>
+    </resultMap>
+
     <sql id="selectCartVo">
         select c.cart_id, c.user_id, c.product_id, c.create_time,
                p.title, p.images, p.price, p.product_condition, p.free_shipping, p.seller_id,
@@ -28,10 +44,28 @@
         left join tb_user u on p.seller_id = u.user_id
     </sql>
 
+    <sql id="selectAllCartVo">
+        select c.cart_id, c.user_id, c.product_id, c.create_time,
+               p.title, p.images, p.price, p.product_condition, p.free_shipping, p.seller_id,
+               u.nickname as seller_name, u.avatar as seller_avatar,
+               buyer.nickname as user_name
+        from tb_cart c
+        left join tb_product p on c.product_id = p.product_id
+        left join tb_user u on p.seller_id = u.user_id
+        left join tb_user buyer on c.user_id = buyer.user_id
+    </sql>
+
     <select id="selectCartList" resultMap="CartResult">
         <include refid="selectCartVo"/>
         <where>
             <if test="userId != null">and c.user_id = #{userId}</if>
+        </where>
+        order by c.create_time desc
+    </select>
+
+    <select id="selectAllCartList" resultMap="CartVOResult">
+        <include refid="selectAllCartVo"/>
+        <where>
         </where>
         order by c.create_time desc
     </select>
