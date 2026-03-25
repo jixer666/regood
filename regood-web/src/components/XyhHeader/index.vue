@@ -21,10 +21,12 @@
             class="search-type"
           >
             <el-option label="全部" value="all" />
-            <el-option label="数码" value="digital" />
-            <el-option label="书籍" value="books" />
-            <el-option label="服饰" value="clothing" />
-            <el-option label="生活" value="life" />
+            <el-option
+              v-for="cat in categories"
+              :key="cat.categoryId"
+              :label="cat.name"
+              :value="cat.categoryId"
+            />
           </el-select>
           <el-input
             v-model="searchKeyword"
@@ -98,6 +100,7 @@
 
 <script>
 import { mapGetters } from "vuex";
+import { getCategoryTree } from "@/api/business/category";
 
 export default {
   name: "XyhHeader",
@@ -105,9 +108,13 @@ export default {
     return {
       searchKeyword: "",
       searchType: "all",
+      categories: [],
       unreadCount: 3,
       cartCount: 2,
     };
+  },
+  created() {
+    this.loadCategories();
   },
   computed: {
     ...mapGetters(["avatar", "name", "userId", "token"]),
@@ -125,18 +132,31 @@ export default {
     },
   },
   methods: {
+    async loadCategories() {
+      try {
+        const res = await getCategoryTree();
+        if (res.code === 200 && res.data) {
+          this.categories = res.data;
+        }
+      } catch (error) {
+        console.error("加载分类失败", error);
+      }
+    },
     goHome() {
       this.$router.push("/home");
     },
     handleSearch() {
+      const query = {
+        type: this.searchType,
+        t: Date.now()
+      }
       if (this.searchKeyword.trim()) {
-        this.$router.push({
-          path: "/home",
-          query: {
-            keyword: this.searchKeyword,
-            type: this.searchType,
-          },
-        });
+        query.keyword = this.searchKeyword
+      }
+      if (this.$route.path === '/home') {
+        this.$router.replace({ path: '/home', query })
+      } else {
+        this.$router.push({ path: '/home', query })
       }
     },
     handlePublish() {

@@ -27,6 +27,13 @@ public class FavoriteController {
         return ApiResult.success(list);
     }
 
+    @ApiOperation("获取所有收藏列表(管理员)")
+    @GetMapping("/all")
+    public ApiResult<List<ProductVO>> getAllFavoriteList() {
+        List<ProductVO> list = favoriteService.getAllFavoriteList();
+        return ApiResult.success(list);
+    }
+
     @ApiOperation("添加收藏")
     @PostMapping("/{productId}")
     public ApiResult<String> addFavorite(@PathVariable Long productId) {

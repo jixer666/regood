@@ -28,4 +28,14 @@
         order by sort
     </select>
 
+    <select id="selectCategoryIdsByParentId" resultType="java.lang.Long">
+        with recursive cte as (
+            select category_id from tb_category where parent_id = #{parentId}
+            union all
+            select c.category_id from tb_category c
+            inner join cte on c.parent_id = cte.category_id
+        )
+        select category_id from cte
+    </select>
+
 </mapper>

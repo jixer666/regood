@@ -8,6 +8,7 @@ import com.abc.business.domain.dto.ProductDTO;
 import com.abc.business.domain.entity.Product;
 import com.abc.business.domain.vo.ProductVO;
 import com.abc.business.mapper.CartMapper;
+import com.abc.business.mapper.CategoryMapper;
 import com.abc.business.mapper.ProductMapper;
 import com.abc.business.service.FavoriteService;
 import com.abc.business.service.ProductService;
@@ -36,8 +37,21 @@ public class ProductServiceImpl extends BaseServiceImpl<ProductMapper, Product> 
     @Autowired
     private FavoriteService favoriteService;
 
+    @Autowired
+    private CategoryMapper categoryMapper;
+
     @Override
     public PageResult getProductPage(ProductDTO productDTO) {
+        if (productDTO.getCategoryIdForQuery() != null) {
+            List<Long> categoryIds = categoryMapper.selectCategoryIdsByParentId(productDTO.getCategoryIdForQuery());
+            if (CollUtil.isNotEmpty(categoryIds)) {
+                categoryIds.add(productDTO.getCategoryIdForQuery());
+            } else {
+                categoryIds = new ArrayList<>();
+                categoryIds.add(productDTO.getCategoryIdForQuery());
+            }
+            productDTO.setCategoryIds(categoryIds);
+        }
         startPage();
         List<Product> products = productMapper.selectProductPage(productDTO);
         List<ProductVO> voList = convertToProductVOList(products);

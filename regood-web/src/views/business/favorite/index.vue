@@ -6,19 +6,20 @@
     </div>
     <el-table v-loading="loading" :data="tableList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="50" align="center" />
-      <el-table-column label="商品图片" align="center" key="productImage" width="100">
+      <el-table-column label="商品图片" align="center" width="100">
         <template slot-scope="scope">
-          <el-avatar v-if="scope.row.productImage" size="medium" :src="scope.row.productImage"></el-avatar>
+          <el-avatar v-if="scope.row.images && scope.row.images.length > 0" size="medium" :src="scope.row.images[0]"></el-avatar>
           <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品名称" align="center" key="productName" prop="productName" :show-overflow-tooltip="true" />
-      <el-table-column label="商品价格" align="center" key="price" width="100">
+      <el-table-column label="商品名称" align="center" prop="title" :show-overflow-tooltip="true" min-width="150" />
+      <el-table-column label="商品价格" align="center" width="100">
         <template slot-scope="scope">
           ¥{{ scope.row.price }}
         </template>
       </el-table-column>
-      <el-table-column label="用户" align="center" key="nickname" prop="nickname" width="120" />
+      <el-table-column label="卖家" align="center" prop="sellerName" width="100" />
+      <el-table-column label="收藏用户" align="center" prop="nickname" width="100" />
       <el-table-column label="收藏时间" align="center" prop="createTime" width="160" />
       <el-table-column label="操作" align="center" width="120">
         <template slot-scope="scope">
@@ -31,7 +32,7 @@
 </template>
 
 <script>
-import { getFavoriteList, removeFavorite } from '@/api/business/favorite'
+import { getAllFavoriteList, removeFavorite } from '@/api/business/favorite'
 
 export default {
   name: 'Favorite',
@@ -48,7 +49,7 @@ export default {
   methods: {
     getList() {
       this.loading = true
-      getFavoriteList().then(response => {
+      getAllFavoriteList().then(response => {
         this.tableList = response.data || []
         this.loading = false
       }).catch(() => {

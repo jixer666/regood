@@ -17,7 +17,12 @@ public class UserDTO {
 
     private String avatar;
 
-    // 用于分配角色
+    private String email;
+
+    private String phone;
+
+    private String signature;
+
     private List<Long> roleIds;
 
     public void checkSaveUserRoleParams() {

@@ -27,6 +27,11 @@
         <result property="sellerId" column="seller_id"/>
         <result property="productId" column="product_id"/>
         <result property="price" column="price"/>
+        <result property="productTitle" column="product_title"/>
+        <result property="productImages" column="product_images" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="productCondition" column="product_condition"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="sellerPhone" column="seller_phone"/>
         <result property="status" column="status"/>
         <result property="tradeMethod" column="trade_method"/>
         <result property="address" column="address"/>
@@ -34,8 +39,6 @@
         <result property="payTime" column="pay_time"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
-        <result property="productTitle" column="product_title"/>
-        <result property="productImages" column="product_images" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
         <result property="buyerName" column="buyer_name"/>
         <result property="sellerName" column="seller_name"/>
     </resultMap>
@@ -56,10 +59,13 @@
         select o.order_id, o.order_no, o.buyer_id, o.seller_id, o.product_id, o.price,
                o.status, o.trade_method, o.address, o.meeting_place, o.pay_time,
                o.create_time, o.update_time,
-               p.title as product_title, p.images as product_images,
+               p.title as product_title, p.images as product_images, p.product_condition,
+               c.name as category_name,
+               seller.phone as seller_phone,
                buyer.nickname as buyer_name, seller.nickname as seller_name
         from tb_order o
         left join tb_product p on o.product_id = p.product_id
+        left join tb_category c on p.category_id = c.category_id
         left join tb_user buyer on o.buyer_id = buyer.user_id
         left join tb_user seller on o.seller_id = seller.user_id
     </sql>
@@ -81,6 +87,22 @@
             <if test="status != null">and o.status = #{status}</if>
         </where>
         order by o.create_time desc
+    </select>
+
+    <select id="selectTotalCount" resultType="java.lang.Long">
+        select count(*) from tb_order
+    </select>
+
+    <select id="selectTodayCount" resultType="java.lang.Long">
+        select count(*) from tb_order where date(create_time) = curdate()
+    </select>
+
+    <select id="selectOrderTrend" resultType="java.util.Map">
+        select date(create_time) as date, count(*) as count
+        from tb_order
+        where create_time >= date_sub(curdate(), interval 6 day)
+        group by date(create_time)
+        order by date
     </select>
 
 </mapper>

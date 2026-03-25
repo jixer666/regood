@@ -130,6 +130,7 @@ export default {
       activeCategory: 'all',
       filterType: 'all',
       sortType: 'default',
+      searchKeyword: '',
       currentPage: 1,
       pageSize: 20,
       total: 0,
@@ -150,18 +151,43 @@ export default {
       ],
       filterTags: [
         { label: '全部', value: 'all' },
-        { label: '最新', value: 'new' },
-        { label: '特价', value: 'sale' },
+        { label: '在售', value: 'onsale' },
+        { label: '已卖出', value: 'sold' },
         { label: '包邮', value: 'freeShipping' }
       ],
       goodsList: []
     }
   },
+  watch: {
+    '$route.query': {
+      handler(newQuery, oldQuery) {
+        if (newQuery.t && newQuery.t !== oldQuery.t) {
+          this.searchKeyword = newQuery.keyword || ''
+          this.activeCategory = (newQuery.type && newQuery.type !== 'all') ? newQuery.type : 'all'
+          this.currentPage = 1
+          this.goodsList = []
+          this.hasMore = true
+          this.loadGoodsList()
+        }
+      },
+      immediate: false
+    }
+  },
   created() {
+    this.initSearchFromQuery()
     this.loadCategoryTree()
     this.loadGoodsList()
   },
   methods: {
+    initSearchFromQuery() {
+      const { keyword, type } = this.$route.query
+      if (keyword) {
+        this.searchKeyword = keyword
+      }
+      if (type && type !== 'all') {
+        this.activeCategory = type
+      }
+    },
     async loadCategoryTree() {
       try {
         const res = await getCategoryTree()
@@ -205,10 +231,23 @@ export default {
       try {
         const query = {
           pageNum: this.currentPage,
-          pageSize: this.pageSize,
+          pageSize: this.pageSize
+        }
+        if (this.filterType === 'all') {
+          query.statusList = '1,2'
+        } else if (this.filterType === 'onsale') {
+          query.status = 1
+        } else if (this.filterType === 'sold') {
+          query.status = 2
+        } else if (this.filterType === 'freeShipping') {
+          query.status = 1
+          query.freeShipping = true
         }
         if (this.activeCategory !== 'all') {
           query.categoryIdForQuery = this.activeCategory
+        }
+        if (this.searchKeyword && this.searchKeyword.trim()) {
+          query.title = this.searchKeyword.trim()
         }
         if (this.sortType === 'price_asc') {
           query.sortType = 'price_asc'

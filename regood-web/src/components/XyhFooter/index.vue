@@ -44,15 +44,15 @@
           <div class="contact-info">
             <div class="contact-item">
               <i class="el-icon-service"></i>
-              <span>客服微信：xueyihuan_kefu</span>
+              <span>客服QQ：1322836390</span>
             </div>
             <div class="contact-item">
               <i class="el-icon-phone"></i>
-              <span>联系电话：400-123-4567</span>
+              <span>联系电话：888-888-888</span>
             </div>
             <div class="contact-item">
               <i class="el-icon-message"></i>
-              <span>邮箱：support@xueyihuan.com</span>
+              <span>邮箱：1322836390@qq.com</span>
             </div>
           </div>
           <div class="social-links">

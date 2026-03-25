@@ -89,6 +89,26 @@ public class FavoriteServiceImpl extends BaseServiceImpl<FavoriteMapper, Favorit
         return result;
     }
 
+    @Override
+    public List<ProductVO> getAllFavoriteList() {
+        LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByDesc(Favorite::getCreateTime);
+        List<Favorite> favorites = favoriteMapper.selectList(wrapper);
+
+        List<ProductVO> result = new ArrayList<>();
+        if (CollUtil.isNotEmpty(favorites)) {
+            for (Favorite fav : favorites) {
+                Product product = productMapper.selectById(fav.getProductId());
+                if (product != null) {
+                    ProductVO vo = convertToProductVO(product);
+                    vo.setIsFavorite(true);
+                    result.add(vo);
+                }
+            }
+        }
+        return result;
+    }
+
     private ProductVO convertToProductVO(Product product) {
         ProductVO vo = new ProductVO();
         vo.setProductId(product.getProductId());

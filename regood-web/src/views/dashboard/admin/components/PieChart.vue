@@ -4,7 +4,7 @@
 
 <script>
 import echarts from 'echarts'
-require('echarts/theme/macarons') // echarts theme
+require('echarts/theme/macarons')
 import resize from './mixins/resize'
 
 export default {
@@ -20,12 +20,24 @@ export default {
     },
     height: {
       type: String,
-      default: '300px'
+      default: '358px'
+    },
+    data: {
+      type: Array,
+      default: () => []
     }
   },
   data() {
     return {
       chart: null
+    }
+  },
+  watch: {
+    data: {
+      deep: true,
+      handler(val) {
+        this.setOptions(val)
+      }
     }
   },
   mounted() {
@@ -43,6 +55,15 @@ export default {
   methods: {
     initChart() {
       this.chart = echarts.init(this.$el, 'macarons')
+      this.setOptions(this.data)
+    },
+    setOptions(data) {
+      if (!data || data.length === 0) return
+      
+      const chartData = data.map(item => ({
+        name: item.name,
+        value: item.value || 0
+      }))
 
       this.chart.setOption({
         tooltip: {
@@ -52,22 +73,16 @@ export default {
         legend: {
           left: 'center',
           bottom: '10',
-          data: ['Industries', 'Technology', 'Forex', 'Gold', 'Forecasts']
+          data: chartData.map(item => item.name)
         },
         series: [
           {
-            name: 'WEEKLY WRITE ARTICLES',
+            name: '商品分类',
             type: 'pie',
             roseType: 'radius',
             radius: [15, 95],
             center: ['50%', '38%'],
-            data: [
-              { value: 320, name: 'Industries' },
-              { value: 240, name: 'Technology' },
-              { value: 149, name: 'Forex' },
-              { value: 100, name: 'Gold' },
-              { value: 59, name: 'Forecasts' }
-            ],
+            data: chartData,
             animationEasing: 'cubicInOut',
             animationDuration: 2600
           }

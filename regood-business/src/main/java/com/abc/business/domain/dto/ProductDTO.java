@@ -28,11 +28,13 @@ public class ProductDTO {
 
     private Integer status;
 
+    private String statusList;
+
+    private Boolean freeShipping;
+
     private String tradeMethods;
 
     private String meetingPlace;
-
-    private Boolean freeShipping;
 
     private BigDecimal shippingFee;
 
@@ -43,6 +45,8 @@ public class ProductDTO {
     private String sortType;
 
     private Long categoryIdForQuery;
+
+    private List<Long> categoryIds;
 
     private Integer auditStatus;
 

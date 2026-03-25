@@ -30,6 +30,12 @@ public class OrderVO {
 
     private BigDecimal price;
 
+    private String categoryName;
+
+    private String productCondition;
+
+    private String sellerPhone;
+
     private Integer status;
 
     private String statusText;

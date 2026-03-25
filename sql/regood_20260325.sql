@@ -11,11 +11,63 @@
  Target Server Version : 80043 (8.0.43)
  File Encoding         : 65001
 
- Date: 13/12/2025 18:52:59
+ Date: 25/03/2026 21:14:59
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for tb_cart
+-- ----------------------------
+DROP TABLE IF EXISTS `tb_cart`;
+CREATE TABLE `tb_cart`  (
+  `cart_id` bigint NOT NULL COMMENT '购物车ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `product_id` bigint NOT NULL COMMENT '商品ID',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`cart_id`) USING BTREE,
+  INDEX `idx_user_id`(`user_id` ASC) USING BTREE,
+  INDEX `idx_product_id`(`product_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '购物车表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of tb_cart
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for tb_category
+-- ----------------------------
+DROP TABLE IF EXISTS `tb_category`;
+CREATE TABLE `tb_category`  (
+  `category_id` bigint NOT NULL COMMENT '分类ID',
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类名称',
+  `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '分类图标',
+  `parent_id` bigint NULL DEFAULT 0 COMMENT '父分类ID',
+  `sort` int NULL DEFAULT 0 COMMENT '排序',
+  `status` int NULL DEFAULT 1 COMMENT '状态（1正常 0停用）',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `ver` int NULL DEFAULT 1 COMMENT '版本号',
+  PRIMARY KEY (`category_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '商品分类表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of tb_category
+-- ----------------------------
+INSERT INTO `tb_category` VALUES (1, '数码电子', '📱', 0, 1, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (2, '书籍教材', '📚', 0, 2, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (3, '生活代步', '🚲', 0, 3, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (4, '衣物鞋帽', '👕', 0, 4, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (5, '美妆日用', '💄', 0, 5, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (101, '手机', '📱', 1, 1, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (102, '电脑', '💻', 1, 2, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (103, '平板', '📲', 1, 3, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (104, '配件', '🎧', 1, 4, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (201, '教材', '📖', 2, 1, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (202, '小说', '📕', 2, 2, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (301, '自行车', '🚲', 3, 1, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
+INSERT INTO `tb_category` VALUES (302, '电动车', '🛵', 3, 2, 1, '2026-03-22 10:54:46', '2026-03-22 10:54:46', 1);
 
 -- ----------------------------
 -- Table structure for tb_dict
@@ -32,7 +84,7 @@ CREATE TABLE `tb_dict`  (
   `ver` int NULL DEFAULT NULL COMMENT '版本号',
   PRIMARY KEY (`dict_id`) USING BTREE,
   UNIQUE INDEX `dict_dictKey_uk`(`dict_key` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_dict
@@ -57,7 +109,7 @@ CREATE TABLE `tb_dict_data`  (
   `status` tinyint NULL DEFAULT NULL COMMENT '状态',
   `ver` int NULL DEFAULT NULL COMMENT '版本号',
   PRIMARY KEY (`dict_data_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典数据表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典数据表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_dict_data
@@ -78,6 +130,25 @@ INSERT INTO `tb_dict_data` VALUES (1975804437475811328, 1975577104449929216, '�
 INSERT INTO `tb_dict_data` VALUES (1975804458749321216, 1975577104449929216, '本地', '3', 1974016655841509377, '2025-10-08 14:04:26', '2025-10-08 14:04:26', 1, 1);
 
 -- ----------------------------
+-- Table structure for tb_favorite
+-- ----------------------------
+DROP TABLE IF EXISTS `tb_favorite`;
+CREATE TABLE `tb_favorite`  (
+  `favorite_id` bigint NOT NULL COMMENT '收藏ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `product_id` bigint NOT NULL COMMENT '商品ID',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`favorite_id`) USING BTREE,
+  UNIQUE INDEX `uk_user_product`(`user_id` ASC, `product_id` ASC) USING BTREE,
+  INDEX `idx_user_id`(`user_id` ASC) USING BTREE,
+  INDEX `idx_product_id`(`product_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '收藏表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of tb_favorite
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for tb_file
 -- ----------------------------
 DROP TABLE IF EXISTS `tb_file`;
@@ -95,7 +166,7 @@ CREATE TABLE `tb_file`  (
   `status` tinyint NULL DEFAULT NULL COMMENT '状态',
   `ver` int NULL DEFAULT NULL COMMENT '版本号',
   PRIMARY KEY (`file_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文件表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文件表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_file
@@ -104,6 +175,17 @@ INSERT INTO `tb_file` VALUES (1975796089552531456, '8c0e2877eb06f6bd84bfba168cef
 INSERT INTO `tb_file` VALUES (1975798365709053952, '8c0e2877eb06f6bd84bfba168cef11df997787e7.jpg@1192w_1192h.png', 16204, 'image/png', '2e1a2494808f367b9106d513eb1c134d', 3, 'D:/project/oss/regood/2025/10/08/2e1a2494808f367b9106d513eb1c134d.png', 1974016655841509377, '2025-10-08 13:40:14', '2025-10-08 13:40:14', 1, 1);
 INSERT INTO `tb_file` VALUES (1975798474568019968, '8c0e2877eb06f6bd84bfba168cef11df997787e7.jpg@1192w_1192h.png', 16204, 'image/png', '2e1a2494808f367b9106d513eb1c134d', 3, 'D:/project/oss/regood/2025/10/08/2e1a2494808f367b9106d513eb1c134d.png', 1974016655841509377, '2025-10-08 13:40:40', '2025-10-08 13:40:40', 1, 1);
 INSERT INTO `tb_file` VALUES (1975799014760820736, '8c0e2877eb06f6bd84bfba168cef11df997787e7.jpg@1192w_1192h.png', 16204, 'image/png', '2e1a2494808f367b9106d513eb1c134d', 3, 'D:/project/oss/regood/2025/10/08/2e1a2494808f367b9106d513eb1c134d.png', 1974016655841509377, '2025-10-08 13:42:48', '2025-10-08 13:42:48', 1, 1);
+INSERT INTO `tb_file` VALUES (2035688831602319360, '120106562.jpg', 14822, 'image/jpeg', '8913e8abafb591d05fb716940619d3f1', 3, 'D:/project/oss/regood/2026/03/22/8913e8abafb591d05fb716940619d3f1.jpg', 1974016655841509378, '2026-03-22 20:03:33', '2026-03-22 20:03:33', 1, 1);
+INSERT INTO `tb_file` VALUES (2035689692286083072, '120106562.jpg', 14822, 'image/jpeg', '8913e8abafb591d05fb716940619d3f1', 3, 'D:/project/oss/regood/2026/03/22/8913e8abafb591d05fb716940619d3f1.jpg', 1974016655841509378, '2026-03-22 20:06:59', '2026-03-22 20:06:59', 1, 1);
+INSERT INTO `tb_file` VALUES (2035690093848748032, '120106562.jpg', 14822, 'image/jpeg', '8913e8abafb591d05fb716940619d3f1', 3, 'D:/project/oss/regood/2026/03/22/8913e8abafb591d05fb716940619d3f1.jpg', 1974016655841509378, '2026-03-22 20:08:34', '2026-03-22 20:08:34', 1, 1);
+INSERT INTO `tb_file` VALUES (2036433873543581696, 'logo.png', 1480, 'image/png', '2ec247f0b0d85a0758ec585db9e1a6e0', 3, 'D:/project/oss/regood/2026/03/24/2ec247f0b0d85a0758ec585db9e1a6e0.png', 2036099279761895424, '2026-03-24 21:24:05', '2026-03-24 21:24:05', 1, 1);
+INSERT INTO `tb_file` VALUES (2036434721145315328, 'logo.png', 1480, 'image/png', '2ec247f0b0d85a0758ec585db9e1a6e0', 3, 'D:/project/oss/regood/2026/03/24/2ec247f0b0d85a0758ec585db9e1a6e0.png', 2036099279761895424, '2026-03-24 21:27:27', '2026-03-24 21:27:27', 1, 1);
+INSERT INTO `tb_file` VALUES (2036434734881660928, 'knowmore.png', 15837, 'image/png', '3b6e0a2edac229d531f70d6b5f5a027e', 3, 'D:/project/oss/regood/2026/03/24/3b6e0a2edac229d531f70d6b5f5a027e.png', 2036099279761895424, '2026-03-24 21:27:31', '2026-03-24 21:27:31', 1, 1);
+INSERT INTO `tb_file` VALUES (2036435615488368640, 'knowmore.png', 15837, 'image/png', '3b6e0a2edac229d531f70d6b5f5a027e', 3, 'D:/project/oss/regood/2026/03/24/3b6e0a2edac229d531f70d6b5f5a027e.png', 2036099279761895424, '2026-03-24 21:31:01', '2026-03-24 21:31:01', 1, 1);
+INSERT INTO `tb_file` VALUES (2036436559420678144, 'fengmian.png', 3336, 'image/png', '4553f221041e249a54fa173b4469a1b9', 3, 'D:/project/oss/regood/2026/03/24/4553f221041e249a54fa173b4469a1b9.png', 2036099279761895424, '2026-03-24 21:34:46', '2026-03-24 21:34:46', 1, 1);
+INSERT INTO `tb_file` VALUES (2036453576072691712, '120106562.jpg', 14822, 'image/jpeg', '8913e8abafb591d05fb716940619d3f1', 3, 'D:/project/oss/regood/2026/03/24/8913e8abafb591d05fb716940619d3f1.jpg', 2036099279761895424, '2026-03-24 22:42:23', '2026-03-24 22:42:23', 1, 1);
+INSERT INTO `tb_file` VALUES (2036761007852003328, '120106562.jpg', 14822, 'image/jpeg', '8913e8abafb591d05fb716940619d3f1', 3, 'D:/project/oss/regood/2026/03/25/8913e8abafb591d05fb716940619d3f1.jpg', 2036099279761895424, '2026-03-25 19:04:00', '2026-03-25 19:04:00', 1, 1);
+INSERT INTO `tb_file` VALUES (2036786729547079680, '120106562.jpg', 14822, 'image/jpeg', '8913e8abafb591d05fb716940619d3f1', 3, 'D:/project/oss/regood/2026/03/25/8913e8abafb591d05fb716940619d3f1.jpg', 2036099279761895424, '2026-03-25 20:46:13', '2026-03-25 20:46:13', 1, 1);
 
 -- ----------------------------
 -- Table structure for tb_gen_table
@@ -125,7 +207,7 @@ CREATE TABLE `tb_gen_table`  (
   `status` tinyint NULL DEFAULT NULL COMMENT '状态',
   `ver` int NULL DEFAULT NULL COMMENT '版本号',
   PRIMARY KEY (`gen_table_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '代码生成表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '代码生成表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_gen_table
@@ -153,7 +235,7 @@ CREATE TABLE `tb_gen_table_column`  (
   `status` tinyint NULL DEFAULT NULL COMMENT '状态',
   `ver` int NULL DEFAULT NULL COMMENT '版本号',
   PRIMARY KEY (`gen_table_column_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '代码生成字段表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '代码生成字段表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_gen_table_column
@@ -192,7 +274,7 @@ CREATE TABLE `tb_menu`  (
   `status` tinyint NULL DEFAULT NULL COMMENT '状态',
   `ver` int NULL DEFAULT NULL COMMENT '版本号',
   PRIMARY KEY (`menu_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '菜单权限表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '菜单权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_menu
@@ -225,6 +307,79 @@ INSERT INTO `tb_menu` VALUES (1999680600933564416, 1975545145199874048, '文件�
 INSERT INTO `tb_menu` VALUES (1999681733492113408, 1975545145199874048, '文件新增', NULL, NULL, 3, 2, 'system:file:add', '', 1, 1974016655841509377, '2025-12-13 11:24:12', '2025-12-13 11:24:12', 1, 1);
 INSERT INTO `tb_menu` VALUES (1999681790949883904, 1975545145199874048, '文件编辑', NULL, NULL, 3, 3, 'system:file:edit', '', 1, 1974016655841509377, '2025-12-13 11:24:26', '2025-12-13 11:24:26', 1, 1);
 INSERT INTO `tb_menu` VALUES (1999681851935064064, 1975545145199874048, '文件删除', NULL, NULL, 3, 4, 'system:file:delete', '', 1, 1974016655841509377, '2025-12-13 11:24:40', '2025-12-13 11:24:40', 1, 1);
+INSERT INTO `tb_menu` VALUES (2970482222512695903, 2970482232512675841, '商品审核', 'audit', 'business/product/audit', 2, 1, 'business:product:audit', 'checkbox', 1, 1974016655841509377, '2026-03-24 11:14:29', '2026-03-24 11:14:29', 1, 1);
+INSERT INTO `tb_menu` VALUES (2970482232512675841, 0, '业务管理', 'admin/business', NULL, 1, 3, NULL, 'shopping', 1, 1974016655841509377, '2025-10-04 13:04:29', '2025-10-04 13:04:32', 1, 1);
+INSERT INTO `tb_menu` VALUES (2970482232512695901, 2970482232512675841, '商品管理', 'product', 'business/product/index', 2, 1, 'business:product:list', 'international', 1, 1974016655841509377, '2025-10-04 13:04:29', '2025-10-04 13:04:32', 1, 1);
+INSERT INTO `tb_menu` VALUES (2970482232512695902, 2970482232512675841, '分类管理', 'category', 'business/category/index', 2, 2, 'business:category:list', 'table', 1, 1974016655841509377, '2025-10-04 13:04:29', '2025-10-04 13:04:32', 1, 1);
+INSERT INTO `tb_menu` VALUES (2970482232512695903, 2970482232512675841, '订单管理', 'order', 'business/order/index', 2, 3, 'business:order:list', 'form', 1, 1974016655841509377, '2025-10-04 13:04:29', '2025-10-04 13:04:32', 1, 1);
+INSERT INTO `tb_menu` VALUES (2970482232512695904, 2970482232512675841, '购物车管理', 'cart', 'business/cart/index', 2, 4, 'business:cart:list', 'shopping', 1, 1974016655841509377, '2025-10-04 13:04:29', '2025-10-04 13:04:32', 1, 1);
+INSERT INTO `tb_menu` VALUES (2970482232512695905, 2970482232512675841, '收藏管理', 'favorite', 'business/favorite/index', 2, 5, 'business:favorite:list', 'star', 1, 1974016655841509377, '2025-10-04 13:04:29', '2025-10-04 13:04:32', 1, 1);
+
+-- ----------------------------
+-- Table structure for tb_order
+-- ----------------------------
+DROP TABLE IF EXISTS `tb_order`;
+CREATE TABLE `tb_order`  (
+  `order_id` bigint NOT NULL COMMENT '订单ID',
+  `order_no` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '订单号',
+  `buyer_id` bigint NOT NULL COMMENT '买家ID',
+  `seller_id` bigint NOT NULL COMMENT '卖家ID',
+  `product_id` bigint NOT NULL COMMENT '商品ID',
+  `price` decimal(10, 2) NOT NULL COMMENT '成交价格',
+  `status` int NULL DEFAULT 1 COMMENT '状态（1待支付 2已支付 3已完成 4已取消）',
+  `trade_method` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '交易方式',
+  `address` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '收货地址',
+  `meeting_place` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '面交地点',
+  `pay_time` datetime NULL DEFAULT NULL COMMENT '支付时间',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `ver` int NULL DEFAULT 1 COMMENT '版本号',
+  PRIMARY KEY (`order_id`) USING BTREE,
+  UNIQUE INDEX `uk_order_no`(`order_no` ASC) USING BTREE,
+  INDEX `idx_buyer_id`(`buyer_id` ASC) USING BTREE,
+  INDEX `idx_seller_id`(`seller_id` ASC) USING BTREE,
+  INDEX `idx_product_id`(`product_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '订单表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of tb_order
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for tb_product
+-- ----------------------------
+DROP TABLE IF EXISTS `tb_product`;
+CREATE TABLE `tb_product`  (
+  `product_id` bigint NOT NULL COMMENT '商品ID',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '商品标题',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '商品描述',
+  `images` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '图片JSON数组',
+  `price` decimal(10, 2) NOT NULL COMMENT '出售价格',
+  `original_price` decimal(10, 2) NULL DEFAULT NULL COMMENT '原价',
+  `product_condition` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '成色',
+  `category_id` bigint NULL DEFAULT NULL COMMENT '分类ID',
+  `seller_id` bigint NOT NULL COMMENT '卖家ID',
+  `status` int NULL DEFAULT 1 COMMENT '状态（1在售 2已卖出 3下架）',
+  `audit_status` tinyint NULL DEFAULT 0 COMMENT '审核状态：0-待审核，1-已通过，2-已拒绝',
+  `reject_reason` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '拒绝原因',
+  `view_count` int NULL DEFAULT 0 COMMENT '浏览量',
+  `want_count` int NULL DEFAULT 0 COMMENT '想要数',
+  `trade_methods` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '交易方式JSON',
+  `meeting_place` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '面交地点',
+  `free_shipping` tinyint(1) NULL DEFAULT 1 COMMENT '是否包邮（0否 1是）',
+  `shipping_fee` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '运费',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `ver` int NULL DEFAULT 1 COMMENT '版本号',
+  PRIMARY KEY (`product_id`) USING BTREE,
+  INDEX `idx_seller_id`(`seller_id` ASC) USING BTREE,
+  INDEX `idx_category_id`(`category_id` ASC) USING BTREE,
+  INDEX `idx_status`(`status` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '商品表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of tb_product
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for tb_role
@@ -240,7 +395,7 @@ CREATE TABLE `tb_role`  (
   `status` tinyint NULL DEFAULT NULL COMMENT '状态',
   `ver` int NULL DEFAULT NULL COMMENT '版本号',
   PRIMARY KEY (`role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_role
@@ -256,7 +411,7 @@ CREATE TABLE `tb_role_menu`  (
   `role_id` bigint NOT NULL COMMENT '角色ID',
   `menu_id` bigint NOT NULL COMMENT '菜单ID',
   PRIMARY KEY (`role_id`, `menu_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色菜单表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色菜单表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_role_menu
@@ -269,6 +424,13 @@ INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 1974798888420397056);
 INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 1974813105718456320);
 INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 1974813383091974144);
 INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 1975545145199874048);
+INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 2970482222512695903);
+INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 2970482232512675841);
+INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 2970482232512695901);
+INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 2970482232512695902);
+INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 2970482232512695903);
+INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 2970482232512695904);
+INSERT INTO `tb_role_menu` VALUES (1970482232512675840, 2970482232512695905);
 INSERT INTO `tb_role_menu` VALUES (1981350113852973056, 1970482232512675841);
 INSERT INTO `tb_role_menu` VALUES (1981350113852973056, 1970482232512695842);
 INSERT INTO `tb_role_menu` VALUES (1981350113852973056, 1970482232512695843);
@@ -311,14 +473,17 @@ CREATE TABLE `tb_user`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `status` tinyint NULL DEFAULT NULL COMMENT '状态',
   `ver` int NULL DEFAULT NULL COMMENT '版本号',
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '手机号',
+  `signature` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '个性签名',
   PRIMARY KEY (`user_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_user
 -- ----------------------------
-INSERT INTO `tb_user` VALUES (1974016655841509377, 'admin', '$2a$10$ixVpCBU00FIfut/ZiUq/yuuuA837rvPibpU2xYxxHqnLxRZgKSrkW', 'http://localhost:15000/system/oss/download/1975799014760820736', '管理员', NULL, '2025-10-03 15:40:21', '2025-10-03 15:40:21', 1, 1);
-INSERT INTO `tb_user` VALUES (1974016655841509378, '123456', '$2a$10$ixVpCBU00FIfut/ZiUq/yuuuA837rvPibpU2xYxxHqnLxRZgKSrkW', 'http://localhost:15000/system/oss/download/1975799014760820736', '用户9zig9', NULL, '2025-10-03 15:40:21', '2025-10-03 15:40:21', 1, 1);
+INSERT INTO `tb_user` VALUES (1974016655841509377, 'admin', '$2a$10$ixVpCBU00FIfut/ZiUq/yuuuA837rvPibpU2xYxxHqnLxRZgKSrkW', 'http://localhost:15000/system/oss/download/2035690093848748032', '管理员', NULL, '2025-10-03 15:40:21', '2025-10-03 15:40:21', 1, 1, NULL, NULL);
+INSERT INTO `tb_user` VALUES (1974016655841509378, '123456', '$2a$10$ixVpCBU00FIfut/ZiUq/yuuuA837rvPibpU2xYxxHqnLxRZgKSrkW', 'http://localhost:15000/system/oss/download/2035690093848748032', '用户9zig9', NULL, '2025-10-03 15:40:21', '2025-10-03 15:40:21', 1, 1, NULL, NULL);
+INSERT INTO `tb_user` VALUES (2036099279761895424, 'sqiwqqu4jq', '$2a$10$B0OIhwhxLFFj73tiRN/mbupDWWVvbJVO.K0whWHA17Nbr5oGVbmD6', 'http://localhost:15000/system/oss/download/2036786729547079680', '用户urzvr', '2770063826@qq.com', NULL, NULL, NULL, NULL, '12312312', '123');
 
 -- ----------------------------
 -- Table structure for tb_user_role
@@ -328,12 +493,13 @@ CREATE TABLE `tb_user_role`  (
   `user_id` bigint NOT NULL COMMENT '用户ID',
   `role_id` bigint NOT NULL COMMENT '角色ID',
   PRIMARY KEY (`user_id`, `role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户角色关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户角色关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tb_user_role
 -- ----------------------------
 INSERT INTO `tb_user_role` VALUES (1974016655841509377, 1970482232512675840);
 INSERT INTO `tb_user_role` VALUES (1974016655841509378, 1981350113852973056);
+INSERT INTO `tb_user_role` VALUES (2036099279761895424, 1981350113852973056);
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -23,19 +23,26 @@
     <div>
       <el-table v-loading="loading" :data="tableList">
         <el-table-column label="订单编号" align="center" prop="orderNo" :show-overflow-tooltip="true" width="180" />
-        <el-table-column label="商品信息" align="center">
+        <el-table-column label="商品图片" align="center" width="80">
           <template slot-scope="scope">
-            <el-avatar v-if="scope.row.productImages && scope.row.productImages.length > 0" size="small" :src="scope.row.productImages[0]" style="margin-right: 8px;"></el-avatar>
-            <span>{{ scope.row.productTitle }}</span>
+            <el-avatar v-if="scope.row.productImages && scope.row.productImages.length > 0" size="small" :src="scope.row.productImages[0]"></el-avatar>
           </template>
         </el-table-column>
+        <el-table-column label="商品标题" align="center" prop="productTitle" :show-overflow-tooltip="true" min-width="150" />
+        <el-table-column label="分类" align="center" prop="categoryName" width="100" />
+        <el-table-column label="成色" align="center" prop="productCondition" width="80" />
         <el-table-column label="价格" align="center" width="100">
           <template slot-scope="scope">
             ¥{{ scope.row.price }}
           </template>
         </el-table-column>
         <el-table-column label="买家" align="center" prop="buyerName" width="100" />
-        <el-table-column label="卖家" align="center" prop="sellerName" width="100" />
+        <el-table-column label="卖家" align="center" width="120">
+          <template slot-scope="scope">
+            <div>{{ scope.row.sellerName }}</div>
+            <div v-if="scope.row.sellerPhone" style="font-size: 12px; color: #999;">{{ scope.row.sellerPhone }}</div>
+          </template>
+        </el-table-column>
         <el-table-column label="交易方式" align="center" prop="tradeMethod" width="100" />
         <el-table-column label="状态" align="center" width="100">
           <template slot-scope="scope">

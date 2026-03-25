@@ -1,10 +1,13 @@
 <template>
-  <div :class="className" :style="{height:height,width:width}" />
+  <div class="line-chart-wrapper">
+    <div class="chart-title" v-if="title">{{ title }}</div>
+    <div ref="chart" :class="className" :style="{height:height,width:width}" />
+  </div>
 </template>
 
 <script>
 import echarts from 'echarts'
-require('echarts/theme/macarons') // echarts theme
+require('echarts/theme/macarons')
 import resize from './mixins/resize'
 
 export default {
@@ -20,7 +23,7 @@ export default {
     },
     height: {
       type: String,
-      default: '350px'
+      default: '329px'
     },
     autoResize: {
       type: Boolean,
@@ -29,6 +32,10 @@ export default {
     chartData: {
       type: Object,
       required: true
+    },
+    title: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -58,13 +65,16 @@ export default {
   },
   methods: {
     initChart() {
-      this.chart = echarts.init(this.$el, 'macarons')
+      this.chart = echarts.init(this.$refs.chart, 'macarons')
       this.setOptions(this.chartData)
     },
-    setOptions({ expectedData, actualData } = {}) {
+    setOptions(data) {
+      if (!data || !data.dates || !data.values || data.dates.length === 0) {
+        return
+      }
       this.chart.setOption({
         xAxis: {
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          data: data.dates,
           boundaryGap: false,
           axisTick: {
             show: false
@@ -89,27 +99,8 @@ export default {
             show: false
           }
         },
-        legend: {
-          data: ['expected', 'actual']
-        },
         series: [{
-          name: 'expected', itemStyle: {
-            normal: {
-              color: '#FF005A',
-              lineStyle: {
-                color: '#FF005A',
-                width: 2
-              }
-            }
-          },
-          smooth: true,
-          type: 'line',
-          data: expectedData,
-          animationDuration: 2800,
-          animationEasing: 'cubicInOut'
-        },
-        {
-          name: 'actual',
+          name: '数量',
           smooth: true,
           type: 'line',
           itemStyle: {
@@ -124,7 +115,7 @@ export default {
               }
             }
           },
-          data: actualData,
+          data: data.values,
           animationDuration: 2800,
           animationEasing: 'quadraticOut'
         }]
@@ -133,3 +124,15 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.line-chart-wrapper {
+  width: 100%;
+}
+.chart-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 10px;
+}
+</style>

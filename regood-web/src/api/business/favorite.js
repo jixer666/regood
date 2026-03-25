@@ -7,6 +7,13 @@ export function getFavoriteList() {
   })
 }
 
+export function getAllFavoriteList() {
+  return request({
+    url: '/business/favorite/all',
+    method: 'get'
+  })
+}
+
 export function addFavorite(productId) {
   return request({
     url: `/business/favorite/${productId}`,

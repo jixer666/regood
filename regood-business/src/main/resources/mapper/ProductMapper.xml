@@ -46,11 +46,23 @@
         <include refid="selectProductVo"/>
         <where>
             <if test="status != null">and p.status = #{status}</if>
+            <if test="statusList != null and statusList != ''">
+                and p.status in
+                <foreach collection="statusList.split(',')" item="st" open="(" separator="," close=")">
+                    #{st}
+                </foreach>
+            </if>
+            <if test="freeShipping != null and freeShipping">and p.free_shipping = #{freeShipping}</if>
             <if test="auditStatus != null">and p.audit_status = #{auditStatus}</if>
             <if test="auditStatus == null">
                 and (p.audit_status = 1 or p.audit_status is null)
             </if>
-            <if test="categoryIdForQuery != null">and p.category_id = #{categoryIdForQuery}</if>
+            <if test="categoryIds != null and categoryIds.size() > 0">
+                and p.category_id in
+                <foreach collection="categoryIds" item="cid" open="(" separator="," close=")">
+                    #{cid}
+                </foreach>
+            </if>
             <if test="sellerId != null">and p.seller_id = #{sellerId}</if>
             <if test="title != null and title != ''">and p.title like concat('%', #{title}, '%')</if>
         </where>
@@ -67,11 +79,55 @@
         <where>
             <if test="status != null">and p.status = #{status}</if>
             <if test="categoryIdForQuery != null">and p.category_id = #{categoryIdForQuery}</if>
+            <if test="categoryIds != null and categoryIds.size() > 0">
+                and p.category_id in
+                <foreach collection="categoryIds" item="cid" open="(" separator="," close=")">
+                    #{cid}
+                </foreach>
+            </if>
         </where>
     </select>
     <select id="selectByProduceId" resultType="com.abc.business.domain.entity.Product">
         <include refid="selectProductVo"/>
         where product_id = #{productId}
+    </select>
+
+    <select id="selectCategoryIdsByParentId" resultType="java.lang.Long">
+        with recursive cte as (
+            select category_id from tb_category where parent_id = #{parentId}
+            union all
+            select c.category_id from tb_category c
+            inner join cte on c.parent_id = cte.category_id
+        )
+        select category_id from cte
+    </select>
+
+    <select id="selectTotalCount" resultType="java.lang.Long">
+        select count(*) from tb_product
+    </select>
+
+    <select id="selectPendingAuditCount" resultType="java.lang.Long">
+        select count(*) from tb_product where audit_status = 0
+    </select>
+
+    <select id="selectTodayCount" resultType="java.lang.Long">
+        select count(*) from tb_product where date(create_time) = curdate()
+    </select>
+
+    <select id="selectProductTrend" resultType="java.util.Map">
+        select date(create_time) as date, count(*) as count
+        from tb_product
+        where create_time >= date_sub(curdate(), interval 6 day)
+        group by date(create_time)
+        order by date
+    </select>
+
+    <select id="selectCategoryDistribution" resultType="java.util.Map">
+        select c.name as name, count(p.product_id) as value
+        from tb_category c
+        left join tb_product p on c.category_id = p.category_id and p.status = 1
+        where c.parent_id = 0 or c.parent_id is null
+        group by c.category_id, c.name
     </select>
 
 </mapper>

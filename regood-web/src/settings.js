@@ -1,5 +1,5 @@
 module.exports = {
-  title: 'ReGood',
+  title: '学易换后台管理',
 
   /**
    * @type {boolean} true | false

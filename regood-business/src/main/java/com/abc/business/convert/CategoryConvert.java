@@ -28,6 +28,9 @@ public class CategoryConvert {
         vo.setName(category.getName());
         vo.setIcon(category.getIcon());
         vo.setParentId(category.getParentId());
+        vo.setSort(category.getSort());
+        vo.setCreateTime(category.getCreateTime());
+        vo.setUpdateTime(category.getUpdateTime());
         return vo;
     }
 }

@@ -15,4 +15,6 @@ public interface FavoriteService extends IService<Favorite> {
     boolean isFavorite(Long productId, Long userId);
 
     List<ProductVO> getFavoriteList(Long userId);
+
+    List<ProductVO> getAllFavoriteList();
 }
