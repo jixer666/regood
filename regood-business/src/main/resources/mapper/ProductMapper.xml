@@ -35,7 +35,7 @@
                p.product_condition, p.category_id, p.seller_id, p.status, p.view_count, p.want_count,
                p.trade_methods, p.meeting_place, p.free_shipping, p.shipping_fee,
                p.create_time, p.update_time, p.audit_status, p.reject_reason,
-               u.nickname as sellerName, u.avatar as sellerAvatar,
+               u.nickname as seller_name, u.avatar as seller_avatar,
                c.name as category_name
         from tb_product p
         left join tb_user u on p.seller_id = u.user_id

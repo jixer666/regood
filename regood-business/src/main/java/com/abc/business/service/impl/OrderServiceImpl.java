@@ -6,6 +6,7 @@ import com.abc.business.domain.dto.OrderDTO;
 import com.abc.business.domain.entity.Order;
 import com.abc.business.domain.entity.Product;
 import com.abc.business.domain.vo.OrderVO;
+import com.abc.business.mapper.CartMapper;
 import com.abc.business.mapper.OrderMapper;
 import com.abc.business.mapper.ProductMapper;
 import com.abc.business.service.OrderService;
@@ -30,6 +31,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderMapper, Order> implem
 
     @Autowired
     private ProductMapper productMapper;
+
+    @Autowired
+    private CartMapper cartMapper;
 
     @Override
     public PageResult getOrderPage(OrderDTO orderDTO, Long userId) {
@@ -85,6 +89,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderMapper, Order> implem
 
         product.setStatus(2);
         productMapper.updateById(product);
+
+        cartMapper.deleteByUserIdAndProductId(userId, orderDTO.getProductId());
     }
 
     @Override

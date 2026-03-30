@@ -70,4 +70,14 @@
         order by c.create_time desc
     </select>
 
+    <select id="selectExistCart" resultType="java.lang.Long">
+        select cart_id from tb_cart
+        where user_id = #{userId} and product_id = #{productId}
+        limit 1
+    </select>
+
+    <delete id="deleteByUserIdAndProductId">
+        delete from tb_cart where user_id = #{userId} and product_id = #{productId}
+    </delete>
+
 </mapper>

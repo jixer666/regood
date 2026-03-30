@@ -57,6 +57,11 @@ public class CartServiceImpl extends BaseServiceImpl<CartMapper, Cart> implement
             AssertUtils.isTrue(false, "商品未通过审核");
         }
 
+        AssertUtils.isFalse(product.getSellerId().equals(userId), "不能添加自己发布的商品");
+
+        Long existCartId = baseMapper.selectExistCart(userId, cartDTO.getProductId());
+        AssertUtils.isEmpty(existCartId, "该商品已在购物车中");
+
         Cart cart = new Cart();
         cart.setCartId(IdUtils.getId());
         cart.setUserId(userId);

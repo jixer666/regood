@@ -83,6 +83,8 @@
     <select id="selectAllOrderList" resultMap="OrderVOResult">
         <include refid="selectAllOrderVo"/>
         <where>
+            <if test="buyerId != null">and o.buyer_id = #{buyerId}</if>
+            <if test="sellerId != null">and o.seller_id = #{sellerId}</if>
             <if test="orderNo != null and orderNo != ''">and o.order_no like concat('%', #{orderNo}, '%')</if>
             <if test="status != null">and o.status = #{status}</if>
         </where>

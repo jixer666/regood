@@ -84,7 +84,7 @@ export default {
     }
     return {
       loginForm: {
-        username: '123456',
+        username: 'admin',
         password: '123456',
         authType: 1,
       },

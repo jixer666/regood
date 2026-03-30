@@ -82,9 +82,9 @@
                 <span>{{ goods.location }}</span>
               </div>
             </div>
-            <div class="want-btn" @click.stop="handleWant(goods)">
-              <span>{{ goods.wantCount || 0 }}想要</span>
-            </div>
+<!--            <div class="want-btn" @click.stop="handleWant(goods)">-->
+<!--              <span>{{ goods.wantCount || 0 }}想要</span>-->
+<!--            </div>-->
           </div>
         </div>
       </div>
