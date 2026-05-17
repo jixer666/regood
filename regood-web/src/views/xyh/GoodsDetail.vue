@@ -212,6 +212,7 @@ export default {
             priceDesc: data.freeShipping ? '包邮' : '不包邮',
             images: (data.images || []).map((url, index) => ({ url, id: index })),
             attrs: this.buildAttrs(data),
+            sellerId: data.sellerId,
             sellerName: data.sellerName,
             sellerAvatar: data.sellerAvatar ,
             sellerStats: [
@@ -294,7 +295,17 @@ export default {
       }
     },
     startChat() {
-      this.$router.push({ path: '/message', query: { goodsId: this.goodsId } })
+      if (!this.goods.sellerId) {
+        this.$message.warning('卖家信息不完整')
+        return
+      }
+      this.$router.push({ 
+        path: '/message', 
+        query: { 
+          userId: this.goods.sellerId,
+          userName: this.goods.sellerName
+        } 
+      })
     },
     async buyNow() {
       try {

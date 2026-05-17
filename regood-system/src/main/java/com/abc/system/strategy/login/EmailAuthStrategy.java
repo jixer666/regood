@@ -46,7 +46,7 @@ public class EmailAuthStrategy implements AuthStrategy {
 
     @Override
     public LoginUserDTO authenticate(LoginDTO loginDTO) {
-        preLoginCheck(loginDTO);
+//        preLoginCheck(loginDTO);
         User user = registerUser(loginDTO.getEmail());
         return buildLoginUserDTO(user);
     }

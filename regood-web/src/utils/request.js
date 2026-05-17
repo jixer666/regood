@@ -60,18 +60,40 @@ service.interceptors.response.use(
           })
         })
       }
+       if (res.code  === 401) {
+        Message({
+          message: '登录已过期，请重新登录',
+          type: 'warning',
+          duration: 3000
+        })
+        store.dispatch('user/logout').then(() => {
+          location.href = '/login'
+        })
+      } 
       return Promise.reject(new Error(res.message || 'Error'))
     } else {
       return res
     }
   },
   error => {
-    console.log('err' + error) // for debug
-    Message({
-      message: error.message,
-      type: 'error',
-      duration: 5 * 1000
-    })
+    console.log('err' + error)
+    
+    if (error.response && error.response.status === 401) {
+      Message({
+        message: '登录已过期，请重新登录',
+        type: 'warning',
+        duration: 3000
+      })
+      store.dispatch('user/logout').then(() => {
+        location.href = '/login'
+      })
+    } else {
+      Message({
+        message: error.message,
+        type: 'error',
+        duration: 5 * 1000
+      })
+    }
     return Promise.reject(error)
   }
 )

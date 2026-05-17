@@ -1,7 +1,10 @@
 package com.abc.common.util;
 
+import com.abc.common.constant.CommonConstants;
 import com.abc.common.domain.dto.LoginUserDTO;
 import com.abc.common.exception.GlobalException;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -9,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Slf4j
 public class SecurityUtils {
+
+    private static final String SECRET = "abcdefghijklmnopqrstuvwxyz";
 
     /**
      * 判断密码是否相同
@@ -48,5 +53,21 @@ public class SecurityUtils {
      */
     public static Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    /**
+     * 从token中获取用户ID
+     */
+    public static Long getUserIdFromToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(SECRET)
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.get(CommonConstants.JWT_USERID, Long.class);
+        } catch (Exception e) {
+            log.error("从token解析用户ID失败：{}", e.getMessage());
+            return null;
+        }
     }
 }

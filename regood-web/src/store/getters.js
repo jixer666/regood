@@ -12,6 +12,7 @@ const getters = {
   permission_routes: state => state.permission.routes,
   errorLogs: state => state.errorLog.logs,
   sidebarRouters: state => state.permission.sidebarRouters,
-  whiteList: state => state.settings.whiteList
+  whiteList: state => state.settings.whiteList,
+  userId: state => state.user.userId
 }
 export default getters

@@ -7,192 +7,119 @@
       <div class="contact-list">
         <div class="list-header">
           <h3 class="list-title">消息</h3>
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索联系人..."
-            prefix-icon="el-icon-search"
-            size="small"
-            class="search-input"
-          />
         </div>
         <div class="contact-list-content">
           <div
-            v-for="contact in contacts"
-            :key="contact.id"
+            v-for="contact in conversations"
+            :key="contact.conversationId || contact.userId"
             class="contact-item"
-            :class="{ active: activeContact === contact.id }"
-            @click="selectContact(contact.id)"
+            :class="{ active: isActiveConversation(contact) }"
+            @click="selectConversation(contact)"
           >
             <div class="contact-info">
-              <el-avatar :src="contact.avatar" class="contact-avatar"></el-avatar>
+              <el-avatar :src="contact.avatar" class="contact-avatar">
+                {{ contact.nickname ? contact.nickname.charAt(0) : 'U' }}
+              </el-avatar>
               <div class="contact-detail">
-                <div class="contact-name">{{ contact.name }}</div>
+                <div class="contact-name">{{ contact.nickname || contact.username || '用户' }}</div>
                 <div class="contact-preview">
-                  <span class="preview-text">{{ contact.lastMessage }}</span>
-                  <span class="preview-time">{{ contact.lastTime }}</span>
+                  <span class="preview-text">{{ contact.lastMessage || '暂无消息' }}</span>
+                  <span class="preview-time">{{ formatTime(contact.lastMessageTime) }}</span>
                 </div>
               </div>
             </div>
             <div class="contact-meta">
               <el-badge
                 :value="contact.unreadCount"
-                :hidden="contact.unreadCount === 0"
+                :hidden="!contact.unreadCount || contact.unreadCount === 0"
                 class="badge"
-              >
-                <i
-                  v-if="contact.hasGoods"
-                  class="el-icon-shopping-cart-2"
-                  title="关联商品"
-                ></i>
-              </el-badge>
+              />
             </div>
+          </div>
+          <div v-if="conversations.length === 0" class="empty-contacts">
+            <div class="empty-text">暂无会话</div>
           </div>
         </div>
       </div>
 
       <!-- 右侧聊天窗口 -->
       <div class="chat-window">
-        <div class="chat-header">
-          <div class="chat-header-info">
-            <el-avatar :src="activeContactInfo.avatar" class="chat-avatar"></el-avatar>
-            <div class="chat-header-detail">
-              <div class="chat-header-name">{{ activeContactInfo.name }}</div>
-              <div class="chat-header-meta">
-                <span class="header-meta-item">
-                  <i class="el-icon-location-outline"></i>
-                  {{ activeContactInfo.campus }}
-                </span>
-                <span class="header-meta-item">
-                  <i class="el-icon-star-on"></i>
-                  信用分 {{ activeContactInfo.creditScore }}
-                </span>
+        <template v-if="currentConversation">
+          <div class="chat-header">
+            <div class="chat-header-info">
+              <el-avatar :src="currentConversation.avatar" class="chat-avatar">
+                {{ currentConversation.nickname ? currentConversation.nickname.charAt(0) : 'U' }}
+              </el-avatar>
+              <div class="chat-header-detail">
+                <div class="chat-header-name">{{ currentConversation.nickname || currentConversation.username || '用户' }}</div>
               </div>
             </div>
           </div>
-          <div class="chat-header-actions">
-            <el-button
-              type="info"
-              size="small"
-              icon="el-icon-phone"
-              @click="callContact"
-            ></el-button>
-            <el-button
-              type="info"
-              size="small"
-              icon="el-icon-video-camera"
-              @click="videoChat"
-            ></el-button>
-          </div>
-        </div>
 
-        <!-- 关联商品卡片 -->
-        <div v-if="activeContactInfo.goods" class="goods-card">
-          <div class="goods-card-header">
-            <span class="goods-card-title">正在沟通的商品</span>
-            <el-tag size="mini" :type="activeContactInfo.goods.status === 'onsale' ? 'success' : 'info'">
-              {{ activeContactInfo.goods.statusText }}
-            </el-tag>
-          </div>
-          <div class="goods-card-body">
-            <el-image
-              :src="activeContactInfo.goods.image"
-              class="goods-image"
-              fit="cover"
-            />
-            <div class="goods-info">
-              <div class="goods-title">{{ activeContactInfo.goods.title }}</div>
-              <div class="goods-price">
-                <span class="price-symbol">¥</span>
-                <span class="price-value">{{ activeContactInfo.goods.price }}</span>
-              </div>
-              <div class="goods-meta">
-                <span class="condition">{{ activeContactInfo.goods.condition }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 聊天记录 -->
-        <div class="chat-messages" ref="chatMessages">
-          <div
-            v-for="(message, index) in chatMessages"
-            :key="index"
-            class="message-item"
-            :class="{ 'my-message': message.isSelf }"
-          >
-            <div class="message-content">
-              <div class="message-bubble">
-                <div class="message-text">{{ message.text }}</div>
-                <div class="message-meta">
-                  <span class="message-time">{{ message.time }}</span>
-                  <span v-if="message.isSelf" class="message-status">
-                    <i v-if="message.read" class="el-icon-check-double" title="已读"></i>
-                    <i v-else class="el-icon-check" title="已发送"></i>
-                  </span>
+          <!-- 聊天记录 -->
+          <div class="chat-messages" ref="chatMessages">
+            <div
+              v-for="message in messages"
+              :key="message.messageId"
+              class="message-item"
+              :class="{ 'my-message': isMyMessage(message) }"
+            >
+              <el-avatar 
+                :src="message.senderAvatar" 
+                :size="36"
+                class="message-avatar"
+              >
+                {{ message.senderName ? message.senderName.charAt(0) : 'U' }}
+              </el-avatar>
+              <div class="message-content">
+                <div class="message-bubble">
+                  <div class="message-text">{{ message.content }}</div>
+                  <div class="message-meta">
+                    <span class="message-time">{{ formatTime(message.createTime) }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- 快捷短语 -->
-        <div class="quick-phrases" v-if="showQuickPhrases">
-          <div class="quick-phrases-title">快捷短语</div>
-          <div class="quick-phrases-list">
-            <div
-              v-for="phrase in quickPhrases"
-              :key="phrase.id"
-              class="quick-phrase"
-              @click="insertQuickPhrase(phrase.text)"
-            >
-              {{ phrase.text }}
+            <div v-if="messages.length === 0" class="empty-messages">
+              <div class="empty-text">暂无消息，发送第一条消息吧</div>
             </div>
           </div>
-        </div>
 
-        <!-- 输入区 -->
-        <div class="chat-input-area">
-          <div class="input-actions">
-            <el-button
-              type="text"
-              icon="el-icon-picture"
-              @click="uploadImage"
-            ></el-button>
-            <el-button
-              type="text"
-              icon="el-icon-document"
-              @click="toggleQuickPhrases"
-            ></el-button>
+          <!-- 输入区 -->
+          <div class="chat-input-area">
+            <el-input
+              v-model="inputText"
+              type="textarea"
+              :rows="2"
+              placeholder="输入消息..."
+              resize="none"
+              @keyup.enter.native="handleSend"
+              class="message-input"
+            />
+            <div class="input-actions-right">
+              <el-button
+                type="primary"
+                size="small"
+                :disabled="!inputText.trim()"
+                @click="handleSend"
+              >
+                发送
+              </el-button>
+            </div>
           </div>
-          <el-input
-            v-model="inputText"
-            type="textarea"
-            :rows="1"
-            placeholder="输入消息..."
-            resize="none"
-            @keyup.enter.native="sendMessage"
-            class="message-input"
-          />
-          <div class="input-actions-right">
-            <el-button
-              type="primary"
-              size="small"
-              :disabled="!inputText.trim()"
-              @click="sendMessage"
-            >
-              发送
-            </el-button>
-          </div>
-        </div>
 
-        <!-- 防骗提示 -->
-        <div class="warning-box">
-          <div class="warning-icon">🛡️</div>
-          <div class="warning-content">
-            <p class="warning-text">
-              <strong>温馨提示：</strong>请勿脱离本平台进行交易，谨防诈骗！
-            </p>
+          <!-- 防骗提示 -->
+          <div class="warning-box">
+            <div class="warning-icon">🛡️</div>
+            <div class="warning-content">
+              <p class="warning-text">
+                <strong>温馨提示：</strong>请勿脱离本平台进行交易，谨防诈骗！
+              </p>
+            </div>
           </div>
+        </template>
+        <div v-else class="empty-chat">
+          <div class="empty-text">请选择一个会话开始聊天</div>
         </div>
       </div>
     </div>
@@ -201,6 +128,7 @@
 
 <script>
 import XyhHeader from '@/components/XyhHeader'
+import { mapState, mapActions } from 'vuex'
 
 export default {
   name: 'XyhMessage',
@@ -209,173 +137,159 @@ export default {
   },
   data() {
     return {
-      searchKeyword: '',
-      activeContact: 1,
       inputText: '',
-      showQuickPhrases: false,
-      contacts: [
-        {
-          id: 1,
-          name: '学长小李',
-          avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-          lastMessage: '手机还在，需要面交吗？',
-          lastTime: '10:30',
-          unreadCount: 2,
-          hasGoods: true,
-          campus: '主校区',
-          creditScore: 850,
-          goods: {
-            id: 1,
-            title: 'iPhone 13 Pro 256G 远峰蓝 95 新',
-            image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=100',
-            price: 5299,
-            condition: '95 新',
-            status: 'onsale',
-            statusText: '在售'
-          }
-        },
-        {
-          id: 2,
-          name: '学弟小王',
-          avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-          lastMessage: '自行车还在吗？',
-          lastTime: '昨天',
-          unreadCount: 0,
-          hasGoods: true,
-          campus: '东校区',
-          creditScore: 920,
-          goods: {
-            id: 2,
-            title: '捷安特山地自行车 9 成新',
-            image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=100',
-            price: 1299,
-            condition: '9 成新',
-            status: 'onsale',
-            statusText: '在售'
-          }
-        },
-        {
-          id: 3,
-          name: '学妹小张',
-          avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-          lastMessage: '谢谢，东西收到了',
-          lastTime: '前天',
-          unreadCount: 0,
-          hasGoods: false,
-          campus: '主校区',
-          creditScore: 880,
-          goods: null
-        }
-      ],
-      chatMessages: [
-        {
-          id: 1,
-          text: '你好，iPhone 13 Pro 还在吗？',
-          isSelf: true,
-          time: '10:00',
-          read: true
-        },
-        {
-          id: 2,
-          text: '在的，95 新，原装包装盒都在。',
-          isSelf: false,
-          time: '10:05',
-          read: true
-        },
-        {
-          id: 3,
-          text: '手机还在，需要面交吗？',
-          isSelf: false,
-          time: '10:30',
-          read: false
-        }
-      ],
-      quickPhrases: [
-        { id: 1, text: '同学，东西还在吗？' },
-        { id: 2, text: '能在食堂面交吗？' },
-        { id: 3, text: '可以便宜点吗？' },
-        { id: 4, text: '支持快递吗？' },
-        { id: 5, text: '能再送点小配件吗？' }
-      ]
+      currentUserId: null
     }
   },
   computed: {
-    activeContactInfo() {
-      return this.contacts.find(c => c.id === this.activeContact) || {}
-    }
+    ...mapState('chat', ['conversations', 'currentConversation', 'messages', 'isConnected'])
   },
-  watch: {
-    activeContact() {
-      this.scrollToBottom()
-    },
-    chatMessages() {
-      this.scrollToBottom()
+  created() {
+    this.currentUserId = this.$store.getters.userId
+    this.initChat()
+    
+    // 检查是否从商品详情页跳转过来
+    const { userId, userName } = this.$route.query
+    if (userId) {
+      this.createConversationWithUser(userId, userName)
     }
   },
   mounted() {
-    this.scrollToBottom()
+    this.connectWebSocket()
+  },
+  beforeDestroy() {
+    this.disconnectWebSocket()
   },
   methods: {
-    selectContact(id) {
-      this.activeContact = id
-      // 标记已读
-      const contact = this.contacts.find(c => c.id === id)
-      if (contact) {
+    ...mapActions('chat', [
+      'getConversations',
+      'getMessages',
+      'sendMessage',
+      'markAsRead',
+      'connectWebSocket',
+      'disconnectWebSocket',
+      'sendWebSocketMessage',
+      'getLatestMessages'
+    ]),
+    async initChat() {
+      try {
+        await this.getConversations()
+      } catch (error) {
+        console.error('加载会话列表失败', error)
+        this.$message.error('加载会话列表失败')
+      }
+    },
+    isActiveConversation(contact) {
+      if (!this.currentConversation) return false
+      const currentConvId = String(this.currentConversation.conversationId || '')
+      const currentUserId = String(this.currentConversation.userId || '')
+      const contactConvId = String(contact.conversationId || '')
+      const contactUserId = String(contact.userId || '')
+      return (currentConvId && currentConvId === contactConvId) || 
+             (currentUserId && currentUserId === contactUserId)
+    },
+    isMyMessage(message) {
+      return String(message.senderId) === String(this.currentUserId)
+    },
+    async createConversationWithUser(userId, userName) {
+      const userIdStr = String(userId)
+      let conversation = this.conversations.find(c => String(c.userId) === userIdStr)
+      
+      if (!conversation) {
+        conversation = {
+          conversationId: null,
+          userId: userId,
+          username: userName || '用户',
+          nickname: userName || '用户',
+          avatar: '',
+          lastMessage: '',
+          lastMessageTime: new Date(),
+          unreadCount: 0
+        }
+        this.conversations.unshift(conversation)
+      }
+      
+      await this.selectConversation(conversation)
+    },
+    async selectConversation(contact) {
+      try {
+        if (contact.conversationId) {
+          await this.getMessages(contact.conversationId)
+          await this.markAsRead(contact.conversationId)
+        } else {
+          this.$store.commit('chat/SET_MESSAGES', [])
+        }
         contact.unreadCount = 0
+        this.$store.commit('chat/SET_CURRENT_CONVERSATION', contact)
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
+      } catch (error) {
+        console.error('加载消息失败', error)
+        this.$message.error('加载消息失败')
+      }
+    },
+    async handleSend() {
+      if (!this.inputText.trim()) {
+        return
+      }
+
+      const data = {
+        receiverId: this.currentConversation.userId,
+        content: this.inputText.trim(),
+        messageType: 1
+      }
+
+      try {
+        if (this.isConnected) {
+          this.sendWebSocketMessage(data)
+          this.inputText = ''
+          await this.markConversationAsRead()
+        } else {
+          await this.sendMessage(data)
+          this.inputText = ''
+          await this.markConversationAsRead()
+        }
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
+      } catch (error) {
+        console.error('发送消息失败', error)
+        this.$message.error('发送消息失败')
+      }
+    },
+    async markConversationAsRead() {
+      if (this.currentConversation && this.currentConversation.conversationId) {
+        try {
+          await this.markAsRead(this.currentConversation.conversationId)
+          this.currentConversation.unreadCount = 0
+        } catch (error) {
+          console.error('标记已读失败', error)
+        }
       }
     },
     scrollToBottom() {
-      this.$nextTick(() => {
-        if (this.$refs.chatMessages) {
-          this.$refs.chatMessages.scrollTop = this.$refs.chatMessages.scrollHeight
-        }
-      })
-    },
-    sendMessage() {
-      if (!this.inputText.trim()) return
-      
-      const message = {
-        id: Date.now(),
-        text: this.inputText,
-        isSelf: true,
-        time: this.getCurrentTime(),
-        read: false
+      if (this.$refs.chatMessages) {
+        this.$refs.chatMessages.scrollTop = this.$refs.chatMessages.scrollHeight
       }
-      
-      this.chatMessages.push(message)
-      this.inputText = ''
-      
-      // 模拟回复
-      setTimeout(() => {
-        const reply = {
-          id: Date.now() + 1,
-          text: '好的，收到！',
-          isSelf: false,
-          time: this.getCurrentTime(),
-          read: false
-        }
-        this.chatMessages.push(reply)
-      }, 1000)
     },
-    getCurrentTime() {
+    formatTime(time) {
+      if (!time) return ''
+      const date = new Date(time)
       const now = new Date()
-      return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
-    },
-    insertQuickPhrase(text) {
-      this.inputText = text
-      this.showQuickPhrases = false
-    },
-    toggleQuickPhrases() {
-      this.showQuickPhrases = !this.showQuickPhrases
-    },
-    uploadImage() {
-      this.$message.info('图片上传功能')
-    },
-    callContact() {
-      this.$message.info('语音通话功能')
-    },
-    videoChat() {
-      this.$message.info('视频通话功能')
+      const diff = now - date
+
+      if (diff < 60000) {
+        return '刚刚'
+      } else if (diff < 3600000) {
+        return Math.floor(diff / 60000) + '分钟前'
+      } else if (diff < 86400000) {
+        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+      } else if (diff < 172800000) {
+        return '昨天'
+      } else {
+        return `${date.getMonth() + 1}/${date.getDate()}`
+      }
     }
   }
 }
@@ -414,13 +328,7 @@ export default {
     font-size: 18px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 12px;
-  }
-  
-  .search-input {
-    ::v-deep .el-input__inner {
-      border-radius: 20px;
-    }
+    margin: 0;
   }
 }
 
@@ -481,6 +389,7 @@ export default {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          flex: 1;
         }
         
         .preview-time {
@@ -500,12 +409,21 @@ export default {
         background: #f5222d;
       }
     }
-    
-    i {
-      font-size: 18px;
-      color: #1890ff;
-    }
   }
+}
+
+.empty-contacts {
+  padding: 40px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-text {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 20px;
 }
 
 .chat-window {
@@ -539,115 +457,6 @@ export default {
         font-size: 16px;
         font-weight: 600;
         color: #333;
-        margin-bottom: 4px;
-      }
-      
-      .chat-header-meta {
-        display: flex;
-        gap: 16px;
-        font-size: 12px;
-        color: #999;
-        
-        .header-meta-item {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-      }
-    }
-  }
-  
-  .chat-header-actions {
-    .el-button {
-      background: #f5f7fa;
-      border: none;
-      color: #666;
-      
-      &:hover {
-        background: #e8e8e8;
-        color: #333;
-      }
-    }
-  }
-}
-
-.goods-card {
-  background: linear-gradient(135deg, #f5f7fa 0%, #fff 100%);
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  margin: 16px;
-  overflow: hidden;
-  
-  .goods-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background: #fff;
-    border-bottom: 1px solid #e8e8e8;
-    
-    .goods-card-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-    }
-  }
-  
-  .goods-card-body {
-    display: flex;
-    gap: 16px;
-    padding: 16px;
-    
-    .goods-image {
-      width: 80px;
-      height: 80px;
-      border-radius: 8px;
-      flex-shrink: 0;
-    }
-    
-    .goods-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      
-      .goods-title {
-        font-size: 14px;
-        color: #333;
-        margin-bottom: 8px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-      }
-      
-      .goods-price {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-        margin-bottom: 4px;
-        
-        .price-symbol {
-          color: #f5222d;
-          font-size: 12px;
-        }
-        
-        .price-value {
-          color: #f5222d;
-          font-size: 18px;
-          font-weight: 600;
-        }
-      }
-      
-      .goods-meta {
-        .condition {
-          font-size: 12px;
-          color: #999;
-          background: #f5f5f5;
-          padding: 2px 6px;
-          border-radius: 4px;
-        }
       }
     }
   }
@@ -661,30 +470,31 @@ export default {
 }
 
 .message-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   margin-bottom: 16px;
   
   &.my-message {
-    display: flex;
-    justify-content: flex-end;
+    flex-direction: row-reverse;
     
     .message-content {
+      align-items: flex-end;
+      
       .message-bubble {
         background: linear-gradient(135deg, #1890ff 0%, #00b4b8 100%);
         color: #fff;
-        align-self: flex-end;
-        
-        .message-meta {
-          .message-status {
-            i {
-              color: rgba(255, 255, 255, 0.8);
-            }
-          }
-        }
       }
     }
   }
   
+  .message-avatar {
+    flex-shrink: 0;
+  }
+  
   .message-content {
+    display: flex;
+    flex-direction: column;
     max-width: 70%;
     
     .message-bubble {
@@ -696,58 +506,29 @@ export default {
       .message-text {
         font-size: 14px;
         line-height: 1.6;
-        color: #333;
+        word-wrap: break-word;
       }
       
       .message-meta {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        justify-content: flex-end;
         margin-top: 8px;
         font-size: 12px;
         color: #999;
         
-        .message-status {
-          i {
-            font-size: 14px;
-          }
+        .my-message & {
+          color: rgba(255, 255, 255, 0.8);
         }
       }
     }
   }
 }
 
-.quick-phrases {
-  padding: 12px 20px;
-  border-top: 1px solid #e8e8e8;
-  background: #fff;
-  
-  .quick-phrases-title {
-    font-size: 12px;
-    color: #999;
-    margin-bottom: 8px;
-  }
-  
-  .quick-phrases-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    
-    .quick-phrase {
-      padding: 6px 12px;
-      background: #f5f7fa;
-      border-radius: 16px;
-      font-size: 13px;
-      color: #666;
-      cursor: pointer;
-      transition: all 0.3s;
-      
-      &:hover {
-        background: #1890ff;
-        color: #fff;
-      }
-    }
-  }
+.empty-messages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 .chat-input-area {
@@ -756,29 +537,13 @@ export default {
   display: flex;
   align-items: flex-end;
   gap: 12px;
-  
-  .input-actions {
-    display: flex;
-    gap: 8px;
-    
-    .el-button {
-      background: #f5f7fa;
-      border: none;
-      color: #666;
-      
-      &:hover {
-        background: #e8e8e8;
-        color: #333;
-      }
-    }
-  }
+  background: #fff;
   
   .message-input {
     flex: 1;
     
     ::v-deep .el-textarea__inner {
-      border-radius: 20px;
-      padding-right: 40px;
+      border-radius: 8px;
     }
   }
   
@@ -805,6 +570,8 @@ export default {
   padding: 12px 20px;
   background: linear-gradient(135deg, #fff7e6 0%, #fff 100%);
   border-top: 1px solid #ffd591;
+  display: flex;
+  align-items: center;
   
   .warning-icon {
     font-size: 18px;
@@ -825,6 +592,13 @@ export default {
   }
 }
 
+.empty-chat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 768px) {
   .message-container {
     flex-direction: column;
@@ -837,7 +611,7 @@ export default {
   }
   
   .chat-window {
-    max-height: 500px;
+    min-height: 500px;
   }
 }
 </style>

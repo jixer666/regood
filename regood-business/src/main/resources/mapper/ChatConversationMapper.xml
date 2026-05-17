@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.abc.business.mapper.ChatConversationMapper">
+
+    <resultMap type="com.abc.business.domain.entity.ChatConversation" id="ChatConversationResult">
+        <result property="conversationId" column="conversation_id"/>
+        <result property="user1Id" column="user1_id"/>
+        <result property="user2Id" column="user2_id"/>
+        <result property="lastMessage" column="last_message"/>
+        <result property="lastMessageTime" column="last_message_time"/>
+        <result property="unreadCount1" column="unread_count1"/>
+        <result property="unreadCount2" column="unread_count2"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="status" column="status"/>
+        <result property="ver" column="ver"/>
+    </resultMap>
+
+    <select id="selectByUserIds" resultMap="ChatConversationResult">
+        select * from tb_chat_conversation
+        where user1_id = #{user1Id} and user2_id = #{user2Id}
+    </select>
+
+    <select id="selectConversationList" resultType="com.abc.business.domain.vo.ChatConversationVO">
+        select 
+            cc.conversation_id,
+            case 
+                when cc.user1_id = #{userId} then cc.user2_id
+                else cc.user1_id
+            end as user_id,
+            u.username,
+            u.nickname,
+            u.avatar,
+            cc.last_message,
+            cc.last_message_time,
+            case 
+                when cc.user1_id = #{userId} then cc.unread_count1
+                else cc.unread_count2
+            end as unread_count
+        from tb_chat_conversation cc
+        left join tb_user u on (
+            case 
+                when cc.user1_id = #{userId} then u.user_id = cc.user2_id
+                else u.user_id = cc.user1_id
+            end
+        )
+        where (cc.user1_id = #{userId} or cc.user2_id = #{userId})
+          and cc.status = 1
+        order by cc.last_message_time desc
+    </select>
+
+</mapper>
